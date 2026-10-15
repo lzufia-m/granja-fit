@@ -295,7 +295,7 @@ const EX = {
   hipthrustm:{n:'Hip thrust en máquina (o patada de glúteo)', d:'En la máquina de hip thrust, o si no hay, patada de glúteo en máquina o polea. Aprieta glúteo arriba 1 s.'},
   revfly:    {n:'Contractora inversa (deltoide posterior)', d:'Sentado de cara al respaldo en la máquina de aperturas. Abre los brazos hacia atrás con los codos casi rectos.'},
   mcurl:     {n:'Curl de bíceps en máquina o polea', d:'Codos fijos (en el apoyo o pegados al cuerpo). Sube contrayendo el bíceps y baja despacio.'},
-  smithsq:   {n:'Sentadilla en multipower', d:'Barra en la parte alta de la espalda, pies un poco adelantados. Baja hasta que los muslos queden paralelos al suelo y sube empujando con todo el pie.'},
+  ropehammer:{n:'Curl martillo en polea con cuerda', d:'Polea baja con cuerda, palmas enfrentadas. Codos pegados al cuerpo, sube hasta el hombro y baja despacio.'},
   mincline:  {n:'Press inclinado en máquina', d:'Como el press de pecho pero con el recorrido inclinado hacia arriba. Si no hay, press inclinado en multipower.'},
   latnarrow: {n:'Jalón con agarre estrecho', d:'Agarre neutro (palmas enfrentadas) o triángulo. Tira hacia el pecho llevando los codos hacia abajo y atrás.'},
   pecdeck:   {n:'Contractora de pecho (pec deck)', d:'Codos un poco doblados a la altura del pecho. Cierra los brazos delante apretando el pecho y abre despacio.'},
@@ -331,58 +331,55 @@ const GATES = {
     [['goblet','5x14-16','Peso máximo, pausa de 3-4 s abajo.'],['bulg','5x10-12 /pierna','Máximo peso, con déficit.','Sentadilla búlgara con déficit'],['sldl','5x10-12 /pierna','Máximo peso, equilibrio estricto.'],['lunge','5x12 /pierna','Máximo peso, zancada larga.'],['calf1','5x18-20 /pierna','Pausa de 2 s arriba.']]
   ]}
 };
-/* ---------- Rutina de gimnasio: 3 días de cuerpo completo (45-55 min + cardio opcional).
+/* ---------- Versión de gimnasio de los mismos días (Empuje, Tirón, Pierna): 45-55 min + cardio opcional.
+   El orden es el mismo ciclo que en casa; solo cambian los ejercicios.
    Cada hueco tiene versión con mancuernas (db) y con máquinas (mq): [id, 'series x reps', nota] ---------- */
-Object.assign(GATES, {
-  gym1:{ name:'Día 1 · Pierna y empuje', sub:'Cuádriceps · Pecho · Hombros · Tríceps', icon:'🏋️', gym:true, slots:[
-    {db:['goblet','4x8-12','El principal del día: ve pesado con buena técnica.'], mq:['legpress','4x8-12','El principal del día: ve pesado con buena técnica.']},
-    {db:['bench','4x8-12',''], mq:['chestpress','4x8-12','']},
-    {db:['lunge','3x10 /pierna',''], mq:['legext','3x12-15','Aguanta 1 s arriba.']},
+const GYM = {
+  push:{ sub:'Pecho · Hombros · Tríceps', slots:[
+    {db:['bench','4x8-12','El principal del día: ve pesado con buena técnica.'], mq:['chestpress','4x8-12','El principal del día: ve pesado con buena técnica.']},
+    {db:['incline','3x10-12',''], mq:['mincline','3x10-12','']},
     {db:['shpress','3x10-12',''], mq:['mshpress','3x10-12','']},
-    {db:['lateral','3x12-15','Poco peso, sin balanceo.'], mq:['mlateral','3x12-15','Poco peso, sin balanceo.']},
-    {db:['triceps','3x12-15',''], mq:['pushdown','3x12-15','']}
-  ]},
-  gym2:{ name:'Día 2 · Espalda y glúteo', sub:'Espalda · Femoral · Glúteo · Bíceps', icon:'🪣', gym:true, slots:[
-    {db:['row','4x8-12 /lado','El principal del día: ve pesado.'], mq:['seatrow','4x8-12','El principal del día: ve pesado.']},
-    {db:['rdl','4x8-12','Cadera atrás, espalda recta.'], mq:['legcurl','4x10-12','']},
-    {db:['pullover','3x10-12',''], mq:['latpull','3x10-12','']},
-    {db:['hipthrust','3x10-12','Aprieta 1 s arriba.'], mq:['hipthrustm','3x10-12','Aprieta 1 s arriba.']},
-    {db:['rear','3x12-15',''], mq:['revfly','3x12-15','']},
-    {db:['curl','3x10-12',''], mq:['mcurl','3x10-12','']}
-  ]},
-  gym3:{ name:'Día 3 · Cuerpo completo', sub:'Pierna · Pecho · Espalda · Gemelo · Abdomen', icon:'⚡', gym:true, slots:[
-    {db:['bulg','3x8-10 /pierna','Empieza con poco peso.'], mq:['smithsq','4x8-10','Ve pesado con buena técnica.']},
-    {db:['incline','4x8-12',''], mq:['mincline','4x8-12','']},
-    {db:['csrow','3x10-12',''], mq:['latnarrow','3x10-12','']},
+    {db:['lateral','4x12-15','Poco peso, sin balanceo.'], mq:['mlateral','4x12-15','Poco peso, sin balanceo.']},
     {db:['fly','3x12-15',''], mq:['pecdeck','3x12-15','']},
+    {db:['triceps','3x12-15',''], mq:['pushdown','3x12-15','']}
+  ], warm:[['Bici o cinta suave','5 min'],['Círculos de brazos','30 s cada sentido'],['Flexiones escapulares lentas','1×15'],['Primer ejercicio con muy poco peso','1×12']]},
+  pull:{ sub:'Espalda · Bíceps · Hombro posterior', slots:[
+    {db:['row','4x8-12 /lado','El principal del día: ve pesado.'], mq:['seatrow','4x8-12','El principal del día: ve pesado.']},
+    {db:['pullover','3x10-12',''], mq:['latpull','4x8-12','']},
+    {db:['csrow','3x10-12',''], mq:['latnarrow','3x10-12','']},
+    {db:['rear','3x12-15',''], mq:['revfly','3x12-15','']},
+    {db:['curl','3x10-12',''], mq:['mcurl','3x10-12','']},
+    {db:['hammer','3x12-15',''], mq:['ropehammer','3x12-15','']}
+  ], warm:[['Remo (máquina de cardio) o bici suave','5 min'],['Círculos de brazos y hombros','30 s cada sentido'],['Juntar escápulas (sin peso)','1×15'],['Primer ejercicio con muy poco peso','1×12']]},
+  legs:{ sub:'Cuádriceps · Femoral · Glúteo · Gemelo · Abdomen', slots:[
+    {db:['goblet','4x8-12','El principal del día: ve pesado con buena técnica.'], mq:['legpress','4x8-12','El principal del día: ve pesado con buena técnica.']},
+    {db:['rdl','4x8-12','Cadera atrás, espalda recta.'], mq:['legcurl','4x10-12','']},
+    {db:['bulg','3x8-10 /pierna','Empieza con poco peso.'], mq:['legext','3x12-15','Aguanta 1 s arriba.']},
+    {db:['hipthrust','3x10-12','Aprieta 1 s arriba.'], mq:['hipthrustm','3x10-12','Aprieta 1 s arriba.']},
     {db:['calf','3x15-20',''], mq:['mcalf','3x12-15','']},
     {db:['dbcrunch','3x12-15',''], mq:['mcrunch','3x12-15','']}
-  ]}
-});
+  ], warm:[['Bici o elíptica suave','5 min'],['Balanceos de pierna','10 por lado'],['Sentadillas sin peso','1×15'],['Primer ejercicio con muy poco peso','1×12']]}
+};
 const CYCLE = ['push','pull','legs','push','pull','legs','rest'];
-const GYM_CYCLE = ['gym1','gym2','gym3'];
-const DAY_LABEL = {push:'Empuje', pull:'Tirón', legs:'Pierna', rest:'Descanso', gym1:'Día 1', gym2:'Día 2', gym3:'Día 3'};
+const DAY_LABEL = {push:'Empuje', pull:'Tirón', legs:'Pierna', rest:'Descanso'};
 const EQUIP = {db:{n:'Mancuernas', e:'💪'}, mq:{n:'Máquinas', e:'🏋️'}};
 /* Cardio extra tras las pesas en el gimnasio. Pasos: [título, explicación, segundos, tipo] */
 const CARDIO = {
-  gym1:{n:'Cinta en cuesta', e:'🚶', d:'Caminar rápido con inclinación: quema bastante y apenas carga las piernas que acabas de entrenar.',
+  push:{n:'Cinta en cuesta', e:'🚶', d:'Caminar rápido con inclinación: quema bastante y las piernas están frescas.',
     steps:[['Calienta caminando','Cinta plana, a 4,5-5 km/h.',120,'prep'],['Camina en cuesta','Inclinación 8-12 %, 5-5,5 km/h. Sin agarrarte a la barra.',660,'work'],['Vuelta a la calma','Baja la inclinación a 0 y el ritmo poco a poco.',120,'rest']]},
-  gym2:{n:'Bici: intervalos', e:'🚴', d:'Corto e intenso: 8 sprints de 30 s con 60 s suaves entre medias.',
+  pull:{n:'Bici: intervalos', e:'🚴', d:'Corto e intenso: 8 sprints de 30 s con 60 s suaves entre medias.',
     plan:[['Calienta suave','Resistencia baja, pedalea cómodo.',180],['8 × (30 s a tope + 60 s suave)','Sube la resistencia en cada sprint y bájala para recuperar.',720],['Vuelta a la calma','Pedalea muy suave.',120]],
     steps:[['Calienta suave','Resistencia baja, pedalea cómodo.',180,'prep'],
       ...Array.from({length:8},(_,i)=>[['Sprint '+(i+1)+'/8','Sube la resistencia y pedalea a tope.',30,'work'],['Suave','Baja la resistencia y recupera.',60,'rest']]).flat(),
       ['Vuelta a la calma','Pedalea muy suave.',120,'rest']]},
-  gym3:{n:'Elíptica o remo', e:'🏃', d:'Ritmo constante y cómodo (zona 2): puedes hablar, pero cuesta un poco.',
-    steps:[['Calienta suave','Resistencia baja.',180,'prep'],['Ritmo constante','Puedes decir frases cortas sin ahogarte. Mantén el ritmo.',900,'work'],['Vuelta a la calma','Baja la resistencia.',120,'rest']]}
+  legs:{n:'Elíptica o bici suave', e:'🏃', d:'Ritmo suave y constante (zona 2): las piernas ya han trabajado, es solo para sumar.',
+    steps:[['Calienta suave','Resistencia baja.',120,'prep'],['Ritmo constante','Puedes decir frases cortas sin ahogarte. Mantén el ritmo.',660,'work'],['Vuelta a la calma','Baja la resistencia.',120,'rest']]}
 };
 
 const WARMUPS = {
   push:[['Círculos de brazos','30 s cada sentido'],['Círculos de muñecas','20 s cada sentido'],['Flexiones escapulares lentas','1×15'],['Press de banca muy ligero','1×12']],
   pull:[['Círculos de brazos y hombros','30 s cada sentido'],['Remo muy ligero','2×10 por lado'],['Juntar escápulas (sin peso)','1×15']],
-  legs:[['Balanceos de pierna (delante-atrás y lateral)','10 por lado'],['Sentadillas sin peso','1×15'],['Rodillas arriba caminando','30 s'],['Círculos de tobillo','10 por lado']],
-  gym1:[['Bici o cinta suave','5 min'],['Sentadillas sin peso','1×15'],['Círculos de brazos','30 s cada sentido'],['Primer ejercicio con muy poco peso','1×12']],
-  gym2:[['Remo (máquina de cardio) o bici suave','5 min'],['Bisagra de cadera sin peso (cadera atrás)','1×12'],['Juntar escápulas (sin peso)','1×15'],['Primer ejercicio con muy poco peso','1×12']],
-  gym3:[['Elíptica o bici suave','5 min'],['Balanceos de pierna','10 por lado'],['Círculos de brazos','30 s cada sentido'],['Primer ejercicio con muy poco peso','1×10']]
+  legs:[['Balanceos de pierna (delante-atrás y lateral)','10 por lado'],['Sentadillas sin peso','1×15'],['Rodillas arriba caminando','30 s'],['Círculos de tobillo','10 por lado']]
 };
 
 /* ---------- Estiramientos al terminar: rutina completa por tipo de día.
@@ -436,11 +433,6 @@ const STRETCHES = {
     ['Respiración profunda tumbado',60,false,'Inspira 4 s, suelta 6 s.']
   ]
 };
-/* Días de gimnasio: mezcla de los de arriba según lo que se ha trabajado */
-{ const pk=(g,...ix)=>ix.map(i=>STRETCHES[g][i]);
-  STRETCHES.gym1=[...pk('legs',0,1,6), ...pk('push',0,1,2,8,9)];
-  STRETCHES.gym2=[...pk('pull',0,2,5), ...pk('legs',2,3), ...pk('pull',6,8,9)];
-  STRETCHES.gym3=[...pk('legs',1,3,6), ...pk('push',0), ...pk('pull',0), ...pk('push',7,6), ...pk('legs',8)]; }
 
 /* ---------- Kegel: 3 sesiones al día. El tiempo de aguante sube con tu rango. ---------- */
 const KEGEL_SLOTS = [{n:'Mañana',ic:'🌅'},{n:'Tarde',ic:'☀️'},{n:'Noche',ic:'🌙'}];
@@ -631,7 +623,7 @@ function newDay(date){ return {date, gate:null, sets:{}, done:false, partial:0, 
 function freshState(){
   const t=today();
   return {
-    v:1, created:t, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, gymCycle:0, gymPref:{},
+    v:1, created:t, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, gymPref:{},
     streak:0, bestStreak:0, lastActive:null, farmDay:t,
     animals:[
       {id:uid(), type:'pita', name:'Lola', sat:100, starve:0, since:t},
@@ -717,19 +709,15 @@ function currentStreak(){ const t=today(); return (S.lastActive===t||S.lastActiv
 
 /* ---------- Entreno de hoy ---------- */
 function atGym(){ return S.settings.place==='gym'; }
-function nextGate(){
-  if(!atGym()) return CYCLE[S.cycle%CYCLE.length];
-  // en el gimnasio: 3 días por semana, así que si entrenaste ayer hoy toca descanso
-  const last=S.log[S.log.length-1];
-  if(last && last.date===addDays(today(),-1)) return 'rest';
-  return GYM_CYCLE[S.gymCycle%GYM_CYCLE.length];
-}
+function nextGate(){ return CYCLE[S.cycle%CYCLE.length]; }
+// versión de gimnasio del día (o null si hoy toca en casa). Un entreno ya terminado mantiene dónde se hizo.
+function gymDay(g){ const gym = S.day.done ? !!S.day.gym : atGym(); return gym ? GYM[g]||null : null; }
 function todayGate(){ return S.day.gate || nextGate(); }
 function slotStarted(i){ return S.day.done || (S.day.sets[i]||[]).some(s=>s.done); }
 function slotEquip(g,i){ return (S.day.eq||{})[i] || S.gymPref[g+':'+i] || S.settings.equip; }
 function todayExercises(){
   const g=todayGate(); if(g==='rest') return [];
-  if(GATES[g].gym) return GATES[g].slots.map((sl,i)=>{ const eq=slotEquip(g,i), [id,t,note]=sl[eq];
+  if(gymDay(g)) return GYM[g].slots.map((sl,i)=>{ const eq=slotEquip(g,i), [id,t,note]=sl[eq];
     return Object.assign({id, t, note, eq, name:EX[id].n, d:EX[id].d}, parseT(t)); });
   return GATES[g].tiers[tier()].map(([id,t,note,name])=>Object.assign({id, t, note, name:name||EX[id].n, d:EX[id].d}, parseT(t)));
 }
@@ -762,13 +750,13 @@ function setPlace(v){
   const anyDone=!S.day.done && Object.values(S.day.sets).some(ss=>ss.some(s=>s.done));
   if(anyDone && !confirm('Ya has marcado series de hoy. Si cambias se borrarán. ¿Cambiar?')) return;
   S.settings.place=v;
-  if(!S.day.done){ S.day.gate=null; S.day.sets={}; S.day.sid={}; S.day.up={}; S.day.eq={}; stopRest(); }
+  if(!S.day.done){ S.day.sets={}; S.day.sid={}; S.day.up={}; S.day.eq={}; stopRest(); }
   save(); render();
 }
 function setEquip(v){
   // los ejercicios que ya has empezado hoy se quedan con la versión con la que los empezaste
   const g=todayGate();
-  if(GATES[g] && GATES[g].gym){ S.day.eq=S.day.eq||{}; GATES[g].slots.forEach((_,i)=>{ if(slotStarted(i)) S.day.eq[i]=slotEquip(g,i); }); }
+  if(gymDay(g)){ S.day.eq=S.day.eq||{}; GYM[g].slots.forEach((_,i)=>{ if(slotStarted(i)) S.day.eq[i]=slotEquip(g,i); }); }
   S.settings.equip=v; S.gymPref={}; save(); render();
 }
 function swapEx(ei){
@@ -818,6 +806,7 @@ function finishWorkout(){
   if(t.done<t.all && !confirm(`Llevas ${t.done} de ${t.all} series. ¿Terminar igualmente? Recibirás la parte proporcional.`)) return;
   const frac=t.done/t.all;
   const entry={id:uid(), date:S.day.date, gate:todayGate(), tier:tier(), exercises:[]};
+  if(gymDay(entry.gate)) entry.gym=true;
   exs.forEach((ex,i)=>{
     const done=setsFor(i,ex).filter(s=>s.done).map(s=>({kg:s.kg, reps:s.reps}));
     if(done.length){
@@ -829,13 +818,12 @@ function finishWorkout(){
   S.log.push(entry);
   const xp=Math.round(REWARD.workout.xp*frac), corn=Math.max(1,Math.round(REWARD.workout.corn*frac));
   const got=addCorn(corn); addXp(xp);
-  S.day.done=true; S.day.partial=frac<1?frac:0; S.day.gate=entry.gate;
-  if(GATES[entry.gate].gym) S.gymCycle=(GYM_CYCLE.indexOf(entry.gate)+1)%GYM_CYCLE.length;
-  else S.cycle=(S.cycle+1)%CYCLE.length;
+  S.day.done=true; S.day.partial=frac<1?frac:0; S.day.gate=entry.gate; S.day.gym=!!entry.gym;
+  S.cycle=(S.cycle+1)%CYCLE.length;
   markActive(); stopRest();
   giftIfStuck();
   save(); render();
-  const cd=CARDIO[entry.gate];
+  const cd=entry.gym && CARDIO[entry.gate];
   const extraBtn = cd ? `<button class="btn warm" onclick="closeModal();startCardio()">${cd.e} Cardio extra: ${cd.n} (~${cardioMins(cd)} min)</button><div style="height:8px"></div>`
     : (S.settings.finisher&&!S.day.finisher) ? '<button class="btn warm" onclick="closeModal();startFinisher()">🔥 Circuito quemagrasa (~9 min)</button><div style="height:8px"></div>' : '';
   showModal(`<div style="text-align:center;font-size:56px">🐔🎉</div><h2 style="text-align:center">¡Entreno terminado!</h2>
@@ -848,7 +836,7 @@ function confirmRest(){
   if(S.day.rest) return;
   S.day.rest=true;
   const got=addCorn(REWARD.rest.corn); addXp(REWARD.rest.xp);
-  if(todayGate()==='rest'){ S.day.gate='rest'; if(!atGym()) S.cycle=(S.cycle+1)%CYCLE.length; }
+  if(todayGate()==='rest'){ S.day.gate='rest'; S.cycle=(S.cycle+1)%CYCLE.length; }
   markActive(); save(); render();
   toast(`Descanso registrado 🌾 +${got} 🌽`);
 }
@@ -1006,7 +994,7 @@ function startFinisher(){
 /* ---------- Cardio extra (gimnasio) ---------- */
 function cardioMins(cd){ return Math.round(cd.steps.reduce((a,s)=>a+s[2],0)/60); }
 function startCardio(){
-  const cd=CARDIO[todayGate()]; if(!cd) return;
+  const g=todayGate(), cd=gymDay(g) && CARDIO[g]; if(!cd) return;
   startPlayer('Cardio · '+cd.n, cd.steps.map(([title,sub,secs,kind])=>({title, sub, secs, kind})), ()=>{
     const first=!S.day.cardio; S.day.cardio=true;
     if(first){ const got=addCorn(REWARD.cardio.corn); addXp(REWARD.cardio.xp); toast(`${cd.e} ¡Cardio hecho! +${got} 🌽`); }
@@ -1242,7 +1230,7 @@ function showIntro(){
 }
 
 function viewHome(){
-  const g=todayGate(), next=nextGate(), gym=atGym();
+  const g=todayGate(), next=nextGate();
   let h='';
   if(S.news.length){
     h+=`<div class="card news"><div class="row"><h3>Mientras no estabas…</h3><span class="sp"></span><button class="btn ghost small" onclick="S.news=[];save();render()">OK</button></div><ul class="clean sub">${S.news.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`;
@@ -1254,22 +1242,22 @@ function viewHome(){
 
   // --- Entreno ---
   h+=`<div class="card"><div class="seg full">${[['home','🏠 En casa'],['gym','🏢 Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div>
-    <div class="chips">${(gym?[...GYM_CYCLE,'rest']:['push','pull','legs','rest']).map(k=>`<button class="chip ${g===k?'on':''} ${k===next&&g!==k?'next':''}" onclick="pickGate('${k}')" ${S.day.done?'disabled':''}><span class="ci">${k==='rest'?'🌾':GATES[k].icon}</span>${DAY_LABEL[k]}</button>`).join('')}</div>`;
+    <div class="chips">${['push','pull','legs','rest'].map(k=>`<button class="chip ${g===k?'on':''} ${k===next&&g!==k?'next':''}" onclick="pickGate('${k}')" ${S.day.done?'disabled':''}><span class="ci">${k==='rest'?'🌾':GATES[k].icon}</span>${DAY_LABEL[k]}</button>`).join('')}</div>`;
   if(g==='rest'){
     h+=`<div style="text-align:center;padding:16px 0 4px"><div style="font-size:54px">🌾</div><h2>Día de descanso</h2>
       <p class="sub">Tus músculos crecen descansando. Confirma el descanso para mantener la racha, y si te apetece haz una sesión de movilidad suave.</p></div>
       ${S.day.rest?`<div class="badge green" style="display:flex;justify-content:center;padding:10px">✓ Descanso registrado</div>`:`<button class="btn" onclick="confirmRest()">Confirmar descanso · +${REWARD.rest.corn} 🌽</button>`}
-      <p class="tiny" style="text-align:center;margin-top:10px">¿Prefieres entrenar? Elige ${gym?'Día 1, 2 o 3':'Empuje, Tirón o Pierna'} arriba.</p>`;
+      <p class="tiny" style="text-align:center;margin-top:10px">¿Prefieres entrenar? Elige Empuje, Tirón o Pierna arriba.</p>`;
   } else {
-    const G=GATES[g], exs=todayExercises(), t=totals();
-    h+=`<div class="row" style="margin-top:10px"><div><h2>${G.icon} ${G.name}</h2><div class="sub">${G.sub}</div></div><span class="sp"></span><span class="badge">${RANKS[tier()].e} ${RANKS[tier()].n}</span></div>
+    const G=GATES[g], GD=gymDay(g), exs=todayExercises(), t=totals();
+    h+=`<div class="row" style="margin-top:10px"><div><h2>${G.icon} ${G.name}</h2><div class="sub">${GD?GD.sub:G.sub}</div></div><span class="sp"></span><span class="badge">${GD?'🏢 Gimnasio':RANKS[tier()].e+' '+RANKS[tier()].n}</span></div>
       <div class="progress-line"><i style="width:${100*t.done/t.all}%"></i></div>
-      <div class="tiny" style="margin-top:4px">${t.done} de ${t.all} series · ${G.gym?'mancuernas: peso de cada una · máquinas: el que marca la máquina':'peso por mancuerna'}</div>`;
-    if(G.gym && !S.day.done) h+=`<div class="seg full" style="margin:12px 0 0">${Object.entries(EQUIP).map(([k,q])=>`<button class="${S.settings.equip===k?'on':''}" onclick="setEquip('${k}')">${q.e} ${q.n}</button>`).join('')}</div>`;
+      <div class="tiny" style="margin-top:4px">${t.done} de ${t.all} series · ${GD?'mancuernas: peso de cada una · máquinas: el que marca la máquina':'peso por mancuerna'}</div>`;
+    if(GD && !S.day.done) h+=`<div class="seg full" style="margin:12px 0 0">${Object.entries(EQUIP).map(([k,q])=>`<button class="${S.settings.equip===k?'on':''}" onclick="setEquip('${k}')">${q.e} ${q.n}</button>`).join('')}</div>`;
     if(S.day.done){
       h+=`<div class="badge green" style="display:flex;justify-content:center;padding:10px;margin-top:12px;font-size:14px">✓ Entreno completado${S.day.partial?' (parcial)':''} · ¡bien hecho!</div>`;
     } else {
-      h+=`<details class="wu"><summary>🔥 Calentamiento <span class="tiny">(${G.gym?'7-8':'2-3'} min)</span></summary>${WARMUPS[g].map(([n,t])=>`<div class="wu-item"><span>${esc(n)}</span><b style="white-space:nowrap">${esc(t)}</b></div>`).join('')}</details>`;
+      h+=`<details class="wu"><summary>🔥 Calentamiento <span class="tiny">(${GD?'7-8':'2-3'} min)</span></summary>${(GD?GD.warm:WARMUPS[g]).map(([n,t])=>`<div class="wu-item"><span>${esc(n)}</span><b style="white-space:nowrap">${esc(t)}</b></div>`).join('')}</details>`;
     }
     exs.forEach((ex,ei)=>{
       const ss=setsFor(ei,ex), complete=ss.every(s=>s.done);
@@ -1297,7 +1285,7 @@ function viewHome(){
   h+=`</div>`;
 
   // --- Cardio extra (gimnasio) ---
-  const cd=CARDIO[g];
+  const cd=g!=='rest' && gymDay(g) && CARDIO[g];
   if(cd){
     h+=`<div class="card"><div class="row"><div><h3>${cd.e} Cardio extra · ${cd.n}</h3><div class="sub">Opcional, al acabar las pesas · unos ${cardioMins(cd)} min${S.settings.goal==='lose'?' · recomendado para tu objetivo':''}</div></div><span class="sp"></span>${S.day.cardio?'<span class="badge green">✓ Hecho</span>':''}</div>
       <p class="sub" style="margin:8px 0 0">${esc(cd.d)}</p>
@@ -1306,7 +1294,7 @@ function viewHome(){
   }
 
   // --- Circuito quemagrasa ---
-  if(S.settings.finisher && g!=='rest' && !GATES[g].gym){
+  if(S.settings.finisher && g!=='rest' && !gymDay(g)){
     const fm=Math.round(finisherSteps().reduce((a,s)=>a+s.secs,0)/60);
     h+=`<div class="card"><div class="row"><div><h3>🔥 Circuito quemagrasa</h3><div class="sub">${finisherRounds()} rondas · 4 ejercicios · unos ${fm} min · al acabar las pesas</div></div><span class="sp"></span>${S.day.finisher?'<span class="badge green">✓ Hecho</span>':''}</div>
       <details class="wu"><summary>Ver ejercicios</summary>${FINISHER.map(([n])=>`<div class="wu-item"><span>${esc(n)}</span><b>30 s</b></div>`).join('')}</details>
@@ -1426,7 +1414,7 @@ function viewProgress(){
   h+=`<div class="sec-title">Historial</div><div class="card">`;
   if(!S.log.length) h+=`<p class="sub" style="margin:0">Todavía no hay entrenos guardados.</p>`;
   S.log.slice().reverse().slice(0,40).forEach(e=>{
-    h+=`<div class="hist"><div class="row"><b>${GATES[e.gate].icon} ${GATES[e.gate].name}</b><span class="tiny">${fmtDate(e.date)} · ${RANKS[e.tier].n}</span><span class="sp"></span><button class="btn ghost small" onclick="delLog('${e.id}')" aria-label="Borrar">🗑</button></div>
+    h+=`<div class="hist"><div class="row"><b>${(GATES[e.gate]||{icon:'🏋️'}).icon} ${(GATES[e.gate]||{name:'Gimnasio'}).name}${e.gym?' · 🏢':''}</b><span class="tiny">${fmtDate(e.date)} · ${RANKS[e.tier].n}</span><span class="sp"></span><button class="btn ghost small" onclick="delLog('${e.id}')" aria-label="Borrar">🗑</button></div>
       <div class="tiny" style="margin-top:4px">${e.exercises.map(x=>`${esc(x.name)}: ${x.sets.map(s=>fmtKg(s.kg)+'×'+s.reps).join(', ')}`).join('<br>')}</div></div>`;
   });
   h+=`</div>`;
@@ -1499,7 +1487,7 @@ function viewSettings(){
     <div class="set-row"><div class="lb">Circuito quemagrasa<small>Unos 8-10 min de cardio con mancuernas tras las pesas (en casa; en el gimnasio tienes cardio extra con máquinas)</small></div><button class="switch ${S.settings.finisher?'on':''}" onclick="S.settings.finisher=!S.settings.finisher;save();render()" aria-label="Circuito quemagrasa"></button></div>
   </div>
   <div class="card"><h3>🏋️ Entreno</h3>
-    <div class="set-row"><div class="lb">Dónde entrenas<small>En casa: rutina con mancuernas de 6 días · Gimnasio: 3 días de cuerpo completo</small></div><div class="seg">${[['home','Casa'],['gym','Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div></div>
+    <div class="set-row"><div class="lb">Dónde entrenas<small>El orden Empuje → Tirón → Pierna es el mismo; en el gimnasio cambian los ejercicios y hay cardio extra</small></div><div class="seg">${[['home','Casa'],['gym','Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div></div>
     ${atGym()?`<div class="set-row"><div class="lb">Material en el gimnasio<small>Puedes cambiar cada ejercicio suelto con el botón ⇄</small></div><div class="seg">${Object.entries(EQUIP).map(([k,q])=>`<button class="${S.settings.equip===k?'on':''}" onclick="setEquip('${k}')">${q.n}</button>`).join('')}</div></div>`:''}
     <div class="set-row"><div class="lb">Descanso entre series<small>Se pone en marcha al marcar una serie</small></div>${seg('rest',[60,90,120,180],o=>o<120?o+'s':(o/60)+'m')}</div>
     <div class="set-row"><div class="lb">Salto de peso<small>Lo que suman los botones − / +</small></div>${seg('step',[0.5,1,2,2.5],o=>fmtKg(+o))}</div>
@@ -1553,6 +1541,7 @@ function migrate(s){
   if(!s.day||!s.day.kegel) s.day=newDay(today());
   if(!s.day.up) s.day.up={};
   if(!s.day.sid) s.day.sid={};
+  if(/^gym/.test(s.day.gate||'')){ s.day.gate=null; s.day.sets={}; s.day.sid={}; s.day.up={}; s.day.eq={}; } // de la versión de 3 días
   return s;
 }
 
