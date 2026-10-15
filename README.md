@@ -1,8 +1,9 @@
 # Mi Granja Fit 🐔
 
-App de entrenamiento con mancuernas, basada en [Ascension System](https://github.com/cellousdrum-del/ascension-system), con temática de granja.
+App de entrenamiento con mancuernas (en casa) o en el gimnasio, basada en [Ascension System](https://github.com/cellousdrum-del/ascension-system), con temática de granja.
 
 - **Entreno**: ciclo Empuje → Tirón → Pierna → Empuje → Tirón → Pierna → Descanso (la versión con mancuernas de Ascension System, con 6 niveles de dificultad que suben con tu nivel).
+- **Gimnasio** (Ajustes o arriba en *Hoy*): 3 días de cuerpo completo de 45-55 min — Día 1 Pierna y empuje, Día 2 Espalda y glúteo, Día 3 Cuerpo completo. Cada ejercicio tiene versión con **mancuernas** o con **máquinas**: eliges el material para todo y puedes cambiar ejercicios sueltos con ⇄ (se recuerda). Si entrenaste ayer, hoy propone descanso. Tras las pesas, **cardio extra** guiado de 15-20 min (cinta en cuesta, bici con intervalos, elíptica/remo).
 - **Pesos**: apunta kg y repeticiones de cada serie; la próxima vez se rellenan solos. Gráfico de progreso por ejercicio.
 - **Estiramientos** guiados al terminar (~10-12 min, según el día) y **Kegel** 3 veces al día.
 - **Objetivo** (bajar / mantener / subir de peso): cambia el descanso entre series, añade un circuito quemagrasa si quieres bajar, y da consejos de comida según cómo evoluciona tu peso (media de 7 días y ritmo semanal).
