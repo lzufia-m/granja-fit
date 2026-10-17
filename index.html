@@ -295,6 +295,10 @@ const EX = {
   hipthrustm:{n:'Hip thrust en máquina (o patada de glúteo)', d:'En la máquina de hip thrust, o si no hay, patada de glúteo en máquina o polea. Aprieta glúteo arriba 1 s.'},
   revfly:    {n:'Contractora inversa (deltoide posterior)', d:'Sentado de cara al respaldo en la máquina de aperturas. Abre los brazos hacia atrás con los codos casi rectos.'},
   mcurl:     {n:'Curl de bíceps en máquina o polea', d:'Codos fijos (en el apoyo o pegados al cuerpo). Sube contrayendo el bíceps y baja despacio.'},
+  adductor:  {n:'Aductores en máquina', d:'Sentado con la espalda apoyada y las almohadillas por dentro de las rodillas. Cierra las piernas apretando, aguanta 1 s y abre despacio sin dejar que las placas choquen.'},
+  abductor:  {n:'Abductores en máquina', d:'Sentado con la espalda apoyada y las almohadillas por fuera de las rodillas. Abre las piernas empujando con el glúteo, aguanta 1 s y cierra despacio.'},
+  sumo:      {n:'Sentadilla sumo con mancuerna', d:'Pies muy abiertos y puntas hacia fuera, una mancuerna colgando entre las piernas. Baja recto con el pecho alto y sube apretando la cara interna del muslo.'},
+  sideabd:   {n:'Abducción tumbado de lado', d:'Tumbado de lado, pierna de abajo doblada y una mancuerna ligera apoyada sobre el muslo de arriba. Sube la pierna recta sin girar la cadera y baja lento.'},
   ropehammer:{n:'Curl martillo en polea con cuerda', d:'Polea baja con cuerda, palmas enfrentadas. Codos pegados al cuerpo, sube hasta el hombro y baja despacio.'},
   mincline:  {n:'Press inclinado en máquina', d:'Como el press de pecho pero con el recorrido inclinado hacia arriba. Si no hay, press inclinado en multipower.'},
   latnarrow: {n:'Jalón con agarre estrecho', d:'Agarre neutro (palmas enfrentadas) o triángulo. Tira hacia el pecho llevando los codos hacia abajo y atrás.'},
@@ -357,7 +361,9 @@ const GYM = {
     {db:['bulg','3x8-10 /pierna','Empieza con poco peso.'], mq:['legext','3x12-15','Aguanta 1 s arriba.']},
     {db:['hipthrust','3x10-12','Aprieta 1 s arriba.'], mq:['hipthrustm','3x10-12','Aprieta 1 s arriba.']},
     {db:['calf','3x15-20',''], mq:['mcalf','3x12-15','']},
-    {db:['dbcrunch','3x12-15',''], mq:['mcrunch','3x12-15','']}
+    {db:['dbcrunch','3x12-15',''], mq:['mcrunch','3x12-15','']},
+    {db:['sumo','3x12-15','Cara interna del muslo.'], mq:['adductor','3x12-15','Cierra con control, sin que choquen las placas.']},
+    {db:['sideabd','3x12-15 /pierna','Glúteo medio.'], mq:['abductor','3x12-15','Glúteo medio: aguanta 1 s abierto.']}
   ], warm:[['Bici o elíptica suave','5 min'],['Balanceos de pierna','10 por lado'],['Sentadillas sin peso','1×15'],['Primer ejercicio con muy poco peso','1×12']]}
 };
 const CYCLE = ['push','pull','legs','push','pull','legs','rest'];
