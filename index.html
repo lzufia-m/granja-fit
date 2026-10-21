@@ -307,6 +307,62 @@ const EX = {
   mcrunch:   {n:'Crunch en máquina o polea', d:'En la máquina de abdominales, o de rodillas con la cuerda en la polea alta: enrolla el tronco llevando el pecho a la cadera.'}
 };
 
+/* ---------- Músculos: qué trabaja cada ejercicio (1 = principal, menos = secundario) ---------- */
+const MUSCLES = {
+  chest:{n:'Pecho'}, delts:{n:'Hombros'}, reardelts:{n:'Hombro posterior'}, traps:{n:'Trapecio'},
+  lats:{n:'Espalda (dorsal)'}, lowback:{n:'Lumbar'}, biceps:{n:'Bíceps'}, triceps:{n:'Tríceps'},
+  forearms:{n:'Antebrazo'}, abs:{n:'Abdomen'}, quads:{n:'Cuádriceps'}, hams:{n:'Femoral'},
+  glutes:{n:'Glúteo'}, abductors:{n:'Glúteo medio (abductores)'}, adductors:{n:'Aductores'}, calves:{n:'Gemelos'}
+};
+const EX_MUSCLES = {
+  bench:{chest:1,delts:.5,triceps:.5}, incline:{chest:1,delts:.6,triceps:.5}, chestpress:{chest:1,delts:.5,triceps:.5}, mincline:{chest:1,delts:.6,triceps:.5},
+  fly:{chest:1,delts:.3}, pecdeck:{chest:1,delts:.3},
+  shpress:{delts:1,triceps:.5}, mshpress:{delts:1,triceps:.5}, pushpress:{delts:1,triceps:.5,quads:.3}, latpress:{delts:1,triceps:.3},
+  lateral:{delts:1,traps:.3}, mlateral:{delts:1,traps:.3},
+  triceps:{triceps:1}, pushdown:{triceps:1},
+  row:{lats:1,traps:.5,reardelts:.5,biceps:.5}, seatrow:{lats:1,traps:.5,reardelts:.5,biceps:.5}, csrow:{lats:1,traps:.6,reardelts:.5,biceps:.5},
+  latpull:{lats:1,biceps:.5,reardelts:.3}, latnarrow:{lats:1,biceps:.6}, pullover:{lats:1,chest:.5,triceps:.3},
+  rear:{reardelts:1,traps:.5}, revfly:{reardelts:1,traps:.5}, rearrow:{reardelts:1,lats:.5,traps:.5}, shrug:{traps:1,forearms:.3},
+  curl:{biceps:1,forearms:.3}, mcurl:{biceps:1,forearms:.3}, hammer:{biceps:.7,forearms:.7}, ropehammer:{biceps:.7,forearms:.7}, curlpress:{biceps:.7,delts:.7},
+  goblet:{quads:1,glutes:.5,adductors:.3,abs:.3}, legpress:{quads:1,glutes:.5,adductors:.3}, legext:{quads:1},
+  bulg:{quads:1,glutes:.7,adductors:.3}, lunge:{quads:1,glutes:.7,adductors:.3}, sumo:{adductors:1,quads:.7,glutes:.7},
+  rdl:{hams:1,glutes:.7,lowback:.5}, sldl:{hams:1,glutes:.7,lowback:.3}, legcurl:{hams:1,calves:.3},
+  hipthrust:{glutes:1,hams:.5}, hipthrustm:{glutes:1,hams:.5},
+  adductor:{adductors:1}, abductor:{abductors:1,glutes:.5}, sideabd:{abductors:1,glutes:.3},
+  calf:{calves:1}, calf1:{calves:1}, mcalf:{calves:1}, dbcrunch:{abs:1}, mcrunch:{abs:1}
+};
+/* Dibujo del cuerpo (mitad izquierda; la derecha se dibuja en espejo). [músculo o null para la silueta, path] */
+const BODY = {
+  front:[
+    [null,'M60,7a12,12 0 1 1 -0.1,0z'], [null,'M54,30h6v12h-6z'],
+    ['traps','M54,35 L45,42 L54,43 Z'],
+    ['delts','M44,43 C36,43 32,49 32,59 C34,63 38,63 40,61 C41,53 44,48 49,46 Z'],
+    ['chest','M59.5,47 L50,46 C43,49 41,55 42,63 C47,69 54,69 59.5,67 Z'],
+    ['biceps','M32,62 C30,71 30,80 32,88 L38,88 C40,80 41,71 40,63 Z'],
+    ['forearms','M31,90 C28,100 27,110 28,120 L33,120 C36,110 38,100 38,90 Z'], [null,'M30.5,121a3.5,6 0 1 0 0.1,0z'],
+    ['abs','M42,66 C46,70 51,71 59.5,70 L59.5,108 C52,108 46,104 44,98 C42,88 42,76 42,66 Z'],
+    [null,'M44,100 C48,106 54,110 59.5,111 L59.5,122 L52,118 L43,113 Z'],
+    ['quads','M43,114 C39,133 39,152 44,170 L53,170 C55,152 55,132 52,119 Z'],
+    ['adductors','M53,119 L59.5,123 L59.5,133 C58,146 56,157 54,165 C56,148 56,132 53,119 Z'],
+    [null,'M48.5,171a5,5 0 1 0 0.1,0z'],
+    ['calves','M43,182 C41,196 42,210 45,224 L50,224 C53,210 53,196 52,182 Z'], [null,'M47,227a5,3 0 1 0 0.1,0z']
+  ],
+  back:[
+    [null,'M60,7a12,12 0 1 1 -0.1,0z'], [null,'M54,30h6v8h-6z'],
+    ['traps','M59.5,34 L54,36 L44,43 L50,47 L55,58 L59.5,72 Z'],
+    ['reardelts','M44,43 C36,43 32,49 32,59 C34,63 38,63 40,61 C41,53 44,48 49,46 Z'],
+    ['lats','M50,49 C44,54 42,64 43,76 C46,86 52,93 59.5,95 L59.5,75 L55,60 Z'],
+    ['lowback','M59.5,96 L53,93 C51,99 50,105 51,110 L59.5,111 Z'],
+    ['triceps','M32,62 C30,71 30,80 32,88 L38,88 C40,80 41,71 40,63 Z'],
+    ['forearms','M31,90 C28,100 27,110 28,120 L33,120 C36,110 38,100 38,90 Z'], [null,'M30.5,121a3.5,6 0 1 0 0.1,0z'],
+    ['abductors','M50,104 C45,103 42,107 42,114 C42,118 43,121 44,123 C44,115 46,109 50,106 Z'],
+    ['glutes','M59.5,111 L51,109 C46,112 44,118 45,126 C49,133 55,134 59.5,131 Z'],
+    ['hams','M44,128 C40,145 41,160 44,170 L53,170 C55,160 57,147 58,134 C53,136 48,134 44,128 Z'],
+    [null,'M48.5,173a5,4 0 1 0 0.1,0z'],
+    ['calves','M42,181 C38,193 40,205 44,213 L52,213 C54,203 54,192 52,181 Z'], [null,'M45,214h6v10h-6z'], [null,'M47,227a5,3 0 1 0 0.1,0z']
+  ]
+};
+
 /* ---------- Rutina (la misma que la versión con mancuernas de Ascension System).
    Seis niveles, uno por rango. [id, 'series x reps', nota, nombre opcional] ---------- */
 const GATES = {
@@ -734,12 +790,11 @@ function setsFor(ei, ex){
   if(!S.day.sets[ei]){
     S.day.sid[ei]=ex.id;
     const last=S.last[ex.id]||[];
-    // si la última vez llegaste al máximo de reps en todas las series, toca subir peso
+    // si la última vez llegaste al máximo de reps en todas las series, se avisa de subir peso (pero no se sube solo)
     const up = last.length>=ex.sets && last.every(q=>q.reps>=ex.rmax) && last[0].kg>0;
-    const step=+S.settings.step;
     S.day.sets[ei]=Array.from({length:ex.sets},(_,i)=>{ const l=last[i]||last[last.length-1];
       if(!l) return {kg:0, reps:ex.rmin, done:false};
-      return up ? {kg:Math.round((l.kg+step)*100)/100, reps:ex.rmin, done:false} : {kg:l.kg, reps:l.reps, done:false}; });
+      return {kg:l.kg, reps:l.reps, done:false}; });
     if(up) S.day.up[ei]=true;
   }
   return S.day.sets[ei];
@@ -1097,6 +1152,49 @@ function nutritionTips(){
   };
   return tips[g]||[];
 }
+/* ---------- Mapa de músculos (hoy o últimos 7 días) ---------- */
+let MRANGE='day';
+function muscleScores(range){
+  const sc={}, t=today(), from = range==='week' ? addDays(t,-6) : t;
+  const add=(id,n)=>{ const m=EX_MUSCLES[id]; if(m) for(const k in m) sc[k]=(sc[k]||0)+m[k]*n; };
+  S.log.forEach(e=>{ if(e.date>=from && e.date<=t) e.exercises.forEach(x=>add(x.id, x.sets.length)); });
+  // lo que llevas hoy y aún no has terminado
+  if(!S.day.done) todayExercises().forEach((ex,i)=>{ const n=(S.day.sets[i]||[]).filter(s=>s.done).length; if(n) add(S.day.sid[i]||ex.id, n); });
+  return sc;
+}
+function heat(v){ // 0..1 -> de melocotón claro a rojo cresta
+  const a=[250,222,208], b=[196,62,40], c=a.map((x,i)=>Math.round(x+(b[i]-x)*v));
+  return `rgb(${c.join(',')})`;
+}
+function bodySvg(sc, max, total){
+  const fig=(view, dx)=>{
+    const shapes=BODY[view].map(([m,d])=>{
+      const v=m&&sc[m]?sc[m]/max:0;
+      const fill = !m ? '#EAE5DA' : v ? heat(.15+.85*v) : '#DDD6C8';
+      return `<path d="${d}" fill="${fill}" stroke="#fff" stroke-width="1">${m?`<title>${MUSCLES[m].n}${sc[m]?' · '+Math.round(100*sc[m]/total)+' %':''}</title>`:''}</path>`;
+    }).join('');
+    return `<g transform="translate(${dx},0)">${shapes}<g transform="translate(120,0) scale(-1,1)">${shapes}</g>
+      <text x="60" y="246" text-anchor="middle" font-size="10" font-weight="800" fill="var(--muted)">${view==='front'?'DELANTE':'DETRÁS'}</text></g>`;
+  };
+  return `<svg viewBox="0 0 240 252" style="width:100%;max-width:360px;display:block;margin:6px auto 0">${fig('front',0)}${fig('back',120)}</svg>`;
+}
+function musclesCard(){
+  const sc=muscleScores(MRANGE), keys=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]);
+  const total=keys.reduce((a,k)=>a+sc[k],0), max=keys.length?sc[keys[0]]:1;
+  let h=`<div class="card"><div class="row"><h3>🧍 Músculos trabajados</h3><span class="sp"></span>
+    <div class="seg">${[['day','Hoy'],['week','7 días']].map(([k,l])=>`<button class="${MRANGE===k?'on':''}" onclick="MRANGE='${k}';render()">${l}</button>`).join('')}</div></div>
+    ${bodySvg(sc,max,total||1)}`;
+  if(!total){
+    h+=`<p class="sub" style="text-align:center;margin:6px 0 0">${MRANGE==='day'?'Marca series y aquí verás qué músculos trabajas hoy.':'Todavía no hay entrenos en los últimos 7 días.'}</p>`;
+  } else {
+    h+=`<div class="tiny" style="display:flex;align-items:center;gap:6px;justify-content:center;margin:4px 0 10px">menos<span style="display:inline-block;width:90px;height:8px;border-radius:99px;background:linear-gradient(90deg,${heat(.15)},${heat(1)})"></span>más</div>
+      ${keys.map(k=>{ const p=Math.round(100*sc[k]/total); return `<div class="row" style="gap:8px;margin-top:6px;font-size:13px"><span style="width:118px;flex:0 0 auto">${MUSCLES[k].n}</span>
+        <div class="bar" style="height:8px"><i style="width:${100*sc[k]/max}%;background:${heat(.15+.85*sc[k]/max)}"></i></div><b style="width:36px;text-align:right">${p} %</b></div>`; }).join('')}
+      <p class="tiny" style="margin:10px 0 0">Porcentaje del trabajo total: cada serie cuenta entera para el músculo principal del ejercicio y a medias para los que ayudan.</p>`;
+  }
+  return h+`</div>`;
+}
+
 function bodyCard(){
   const g=GOALS[S.settings.goal];
   const ws=weightSeries(), cur=ws.length?ws[ws.length-1]:null, r=weeklyRate(), adv=goalAdvice(), tgt=S.settings.target;
@@ -1304,7 +1402,7 @@ function viewHome(){
           <div class="sp"><div class="ex-name">${esc(ex.name)}</div>
           <div class="ex-meta">${ex.eq?EQUIP[ex.eq].e+' ':''}${ex.sets} series × ${reps} reps${per}${ex.note?' · '+esc(ex.note):''}</div>
           ${ex.eq&&!slotStarted(ei)?`<button class="swap" onclick="swapEx(${ei})">⇄ Hacer con ${ex.eq==='db'?'máquina':'mancuernas'}</button>`:''}
-          ${S.day.up[ei]&&!S.day.done?`<div class="ex-up">⬆️ La última vez llegaste al máximo de repeticiones: hoy toca subir peso. Si no puedes con todas, vuelve al anterior.</div>`:''}
+          ${S.day.up[ei]&&!S.day.done?`<div class="ex-up">⬆️ La última vez llegaste al máximo de repeticiones en todas las series: deberías subir el peso. Súbelo tú con + si te ves con fuerza.</div>`:''}
           ${last?`<div class="ex-last">Última vez: ${last.map(s=>fmtKg(s.kg)+'×'+s.reps).join(' · ')}${best?` · 🏆 ${fmtKg(best)} kg`:''}</div>`:`<div class="ex-last">Primera vez: elige un peso con el que llegues justo al rango de repeticiones.</div>`}</div>
           <button class="info-btn" onclick="toggleInfo(${ei})" aria-label="Cómo se hace">?</button></div>
         ${S.day.openInfo[ei]?`<div class="ex-desc">${esc(ex.d)}</div>`:''}
@@ -1318,6 +1416,9 @@ function viewHome(){
     if(!S.day.done) h+=`<div style="height:14px"></div><button class="btn" onclick="finishWorkout()">Terminar entrenamiento · +${REWARD.workout.corn} 🌽</button>`;
   }
   h+=`</div>`;
+
+  // --- Músculos ---
+  if(g!=='rest' || Object.keys(muscleScores(MRANGE)).length) h+=musclesCard();
 
   // --- Cardio extra (gimnasio) ---
   const cd=g!=='rest' && gymDay(g) && CARDIO[g];
@@ -1431,6 +1532,7 @@ function viewProgress(){
     <div class="tile"><div class="v">${S.animals.length} 🐔</div><div class="l">Animales vivos</div></div></div>`;
 
   h+=bodyCard();
+  h+=musclesCard();
   const ids=[...new Set(S.log.flatMap(e=>e.exercises.map(x=>x.id)))];
   h+=`<div class="card"><h3>📈 Progreso por ejercicio</h3>`;
   if(!ids.length){

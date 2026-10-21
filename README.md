@@ -7,7 +7,8 @@ App de entrenamiento con mancuernas (en casa) o en el gimnasio, basada en [Ascen
 - **Pesos**: apunta kg y repeticiones de cada serie; la próxima vez se rellenan solos. Gráfico de progreso por ejercicio.
 - **Estiramientos** guiados al terminar (~10-12 min, según el día) y **Kegel** 3 veces al día.
 - **Objetivo** (bajar / mantener / subir de peso): cambia el descanso entre series, añade un circuito quemagrasa si quieres bajar, y da consejos de comida según cómo evoluciona tu peso (media de 7 días y ritmo semanal).
-- **Sobrecarga progresiva**: si en la última sesión llegaste al máximo de repeticiones en todas las series, la app te propone subir peso.
+- **Sobrecarga progresiva**: si en la última sesión llegaste al máximo de repeticiones en todas las series, la app te avisa de que deberías subir peso (no lo sube sola).
+- **Músculos trabajados**: dibujo del cuerpo (delante y detrás) coloreado según cuánto has trabajado cada músculo, hoy o en los últimos 7 días, con el porcentaje de cada uno.
 - **Granja**: entrenar da 🌽 maíz → alimentas a tus animales → las gallinas ponen 🥚 → compras más animales. Unos 8 días sin comer y mueren. Cada raza tiene su dibujo y hay accesorios (algunos se ganan con la racha).
 
 Todo vive en `index.html` (HTML + CSS + JS, sin dependencias). Los datos se guardan en el navegador (localStorage); usa *Ajustes → Descargar copia* para hacer copias de seguridad.
