@@ -707,6 +707,7 @@ function addXp(n){
 function markActive(){
   const t=today();
   if(S.lastActive===t) return;
+  S.prevActive={date:S.lastActive, streak:S.streak}; // por si luego se apunta el descanso de ayer
   S.streak = (S.lastActive===addDays(t,-1)) ? S.streak+1 : 1;
   S.lastActive=t;
   S.bestStreak=Math.max(S.bestStreak||0, S.streak);
@@ -837,6 +838,29 @@ function finishWorkout(){
     <p class="sub" style="text-align:center">Ahora toca estirar: tus músculos te lo agradecerán.</p>
     ${extraBtn}<button class="btn ${extraBtn?'sec':''}" onclick="closeModal();startStretch()">🧘 Empezar estiramientos</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">Más tarde</button>`);
+}
+/* ---------- Descanso olvidado: apuntar el de ayer ---------- */
+function yesterdayMissing(){
+  const t=today(), y=addDays(t,-1);
+  if(!S.created || S.created>y || S.retroRest===t) return false;
+  if(S.lastActive===t) return S.prevActive ? S.prevActive.date!==y : S.streak===1;
+  return S.lastActive!==y;
+}
+function retroRest(){
+  if(!yesterdayMissing()) return;
+  const t=today(), y=addDays(t,-1), y2=addDays(t,-2);
+  // racha hasta ayer, contando el descanso de ayer
+  const base = S.lastActive===t ? (S.prevActive||{date:null, streak:0}) : {date:S.lastActive, streak:S.streak};
+  const sy = base.date===y2 ? base.streak+1 : 1;
+  if(S.lastActive===t){ S.streak=sy+1; S.prevActive={date:y, streak:sy}; }
+  else { S.streak=sy; S.lastActive=y; }
+  S.bestStreak=Math.max(S.bestStreak||0, S.streak);
+  // si hoy la app te proponía el descanso pendiente, pasa al siguiente entreno
+  if(!S.day.done && !S.day.rest && !S.day.gate && nextGate()==='rest') S.cycle=(S.cycle+1)%CYCLE.length;
+  S.retroRest=t;
+  const got=addCorn(REWARD.rest.corn); addXp(REWARD.rest.xp);
+  save(); render();
+  toast(`🌾 Descanso de ayer apuntado · +${got} 🌽 · racha ${S.streak}`);
 }
 function confirmRest(){
   if(S.day.rest) return;
@@ -1244,6 +1268,11 @@ function viewHome(){
   const weak=S.animals.filter(a=>a.sat<=0);
   if(weak.length){
     h+=`<div class="card alert"><h3>🚨 ${weak.map(a=>esc(a.name)).join(', ')} ${weak.length>1?'se han quedado sin fuerzas':'se ha quedado sin fuerzas'}</h3><p class="sub" style="margin:4px 0 10px">Si no comen pronto, morirán. Entrena para conseguir maíz y dales de comer.</p><button class="btn warm small" onclick="switchTab('farm')">Ir a la granja</button></div>`;
+  }
+
+  if(yesterdayMissing()){
+    h+=`<div class="card"><div class="row"><div><h3>🌾 ¿Ayer descansaste?</h3><div class="sub">Si se te olvidó apuntarlo, hazlo ahora y no pierdes la racha.</div></div></div>
+      <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="retroRest()">Apuntar descanso de ayer · +${REWARD.rest.corn} 🌽</button><button class="btn ghost small" style="width:auto" onclick="S.retroRest=today();save();render()">No</button></div></div>`;
   }
 
   // --- Entreno ---
