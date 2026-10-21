@@ -168,6 +168,14 @@ table.t{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}
 table.t td,table.t th{padding:8px 4px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
 table.t th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-top:none}
 .hist{border-top:1px solid var(--line);padding:12px 0}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dw{font-size:11px;font-weight:800;color:var(--muted);text-align:center;padding-bottom:2px}
+.cd{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--ink2);padding:0;min-width:0}
+.cd .ci{font-size:15px;line-height:1.1;min-height:17px}
+.cd.w{background:var(--sage-soft);border-color:#CFE3D7;color:var(--sage-dark)}
+.cd.r{background:var(--straw-soft);border-color:#F3E0B5}
+.cd.today{border:2px solid var(--ink)}
+.cd.f{opacity:.35}
 .hist:first-child{border-top:none}
 
 /* ---------- Settings ---------- */
@@ -691,7 +699,7 @@ function freshState(){
       {id:uid(), type:'pita', name:'Lola', sat:100, starve:0, since:t},
       {id:uid(), type:'pita', name:'Pepa', sat:100, starve:0, since:t}
     ],
-    graves:[], news:[], last:{}, best:{}, log:[], seenIntro:false, owned:[], weights:{},
+    graves:[], news:[], last:{}, best:{}, log:[], hist:{}, seenIntro:false, owned:[], weights:{},
     day:newDay(t),
     settings:{rest:90, step:1, tier:'auto', notif:false, kegelTimes:['09:00','15:00','21:00'], goal:null, finisher:false, target:null, place:'home', equip:'mq'}
   };
@@ -737,7 +745,7 @@ function rollover(){
     if(hungry.length) S.news.push(`🌽 ${hungry.map(a=>a.name).join(', ')} ${hungry.length>1?'tienen':'tiene'} mucha hambre.`);
     changed=true;
   }
-  if(S.day.date!==t){ S.day=newDay(t); changed=true; }
+  if(S.day.date!==t){ archiveDay(S.day); S.day=newDay(t); changed=true; }
   if(changed) save();
   return changed;
 }
@@ -805,14 +813,14 @@ function pickGate(g){
   if(S.day.done) return;
   const anyDone=Object.values(S.day.sets).some(ss=>ss.some(s=>s.done));
   if(anyDone && !confirm('Ya has marcado series de hoy. Si cambias de entreno se borrarán. ¿Cambiar?')) return;
-  S.day.gate=g; S.day.sets={}; S.day.sid={}; S.day.up={}; S.day.eq={}; stopRest(); save(); render();
+  S.day.gate=g; S.day.sets={}; S.day.sid={}; S.day.up={}; S.day.eq={}; S.day.start=null; stopRest(); save(); render();
 }
 function setPlace(v){
   if(S.settings.place===v) return;
   const anyDone=!S.day.done && Object.values(S.day.sets).some(ss=>ss.some(s=>s.done));
   if(anyDone && !confirm('Ya has marcado series de hoy. Si cambias se borrarán. ¿Cambiar?')) return;
   S.settings.place=v;
-  if(!S.day.done){ S.day.sets={}; S.day.sid={}; S.day.up={}; S.day.eq={}; stopRest(); }
+  if(!S.day.done){ S.day.sets={}; S.day.sid={}; S.day.up={}; S.day.eq={}; S.day.start=null; stopRest(); }
   save(); render();
 }
 function setEquip(v){
@@ -852,6 +860,7 @@ function toggleSet(ei,si){
   ensureAudio();
   const exs=todayExercises(), ex=exs[ei], ss=setsFor(ei,ex), s=ss[si];
   s.done=!s.done;
+  if(s.done && !S.day.start) S.day.start=Date.now(); // el cronómetro empieza con la primera serie
   if(s.done){
     const prev=S.best[ex.id]||0;
     if(s.kg>prev && prev>0 && !S.day.prToast?.[ex.id]){ S.day.prToast=Object.assign({},S.day.prToast,{[ex.id]:1}); toast(`🏆 ¡Récord en ${EX[ex.id].n}: ${fmtKg(s.kg)} kg!`); }
@@ -869,6 +878,7 @@ function finishWorkout(){
   const frac=t.done/t.all;
   const entry={id:uid(), date:S.day.date, gate:todayGate(), tier:tier(), exercises:[]};
   if(gymDay(entry.gate)) entry.gym=true;
+  if(S.day.start) entry.secs=Math.round((Date.now()-S.day.start)/1000);
   exs.forEach((ex,i)=>{
     const done=setsFor(i,ex).filter(s=>s.done).map(s=>({kg:s.kg, reps:s.reps}));
     if(done.length){
@@ -889,7 +899,7 @@ function finishWorkout(){
   const extraBtn = cd ? `<button class="btn warm" onclick="closeModal();startCardio()">${cd.e} Cardio extra: ${cd.n} (~${cardioMins(cd)} min)</button><div style="height:8px"></div>`
     : (S.settings.finisher&&!S.day.finisher) ? '<button class="btn warm" onclick="closeModal();startFinisher()">🔥 Circuito quemagrasa (~9 min)</button><div style="height:8px"></div>' : '';
   showModal(`<div style="text-align:center;font-size:56px">🐔🎉</div><h2 style="text-align:center">¡Entreno terminado!</h2>
-    <p class="sub" style="text-align:center">+${xp} XP · +${got} 🌽 de maíz para la granja</p>
+    <p class="sub" style="text-align:center">${entry.secs?`⏱ Has entrenado <b>${fmtDur(entry.secs)}</b> · `:''}+${xp} XP · +${got} 🌽 de maíz para la granja</p>
     <p class="sub" style="text-align:center">Ahora toca estirar: tus músculos te lo agradecerán.</p>
     ${extraBtn}<button class="btn ${extraBtn?'sec':''}" onclick="closeModal();startStretch()">🧘 Empezar estiramientos</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">Más tarde</button>`);
@@ -913,6 +923,7 @@ function retroRest(){
   // si hoy la app te proponía el descanso pendiente, pasa al siguiente entreno
   if(!S.day.done && !S.day.rest && !S.day.gate && nextGate()==='rest') S.cycle=(S.cycle+1)%CYCLE.length;
   S.retroRest=t;
+  S.hist[y]=Object.assign(S.hist[y]||{}, {rest:true});
   const got=addCorn(REWARD.rest.corn); addXp(REWARD.rest.xp);
   save(); render();
   toast(`🌾 Descanso de ayer apuntado · +${got} 🌽 · racha ${S.streak}`);
@@ -1339,6 +1350,7 @@ function render(){
     ${[['home','🏋️','Hoy'],['farm','🐔','Granja'],['progress','📈','Progreso'],['settings','⚙️','Ajustes']].map(([k,i,l])=>`<button class="${currentTab===k?'on':''}" onclick="switchTab('${k}')"><span class="i">${i}</span>${l}${k==='farm'&&(hungry||S.pendingEggs.length)?'<span class="dot"></span>':''}</button>`).join('')}
   </div></nav>`;
   drawRest();
+  tickClock();
   bindCharts();
   if(!S.seenIntro && !document.querySelector('.modal')) showIntro();
   else if(S.seenIntro && !S.settings.goal && !document.querySelector('.modal') && !P) chooseGoal();
@@ -1383,8 +1395,11 @@ function viewHome(){
       <p class="tiny" style="text-align:center;margin-top:10px">¿Prefieres entrenar? Elige Empuje, Tirón o Pierna arriba.</p>`;
   } else {
     const G=GATES[g], GD=gymDay(g), exs=todayExercises(), t=totals();
+    const doneSecs=(S.log.find(e=>e.date===S.day.date&&e.secs)||{}).secs;
     h+=`<div class="row" style="margin-top:10px"><div><h2>${G.icon} ${G.name}</h2><div class="sub">${GD?GD.sub:G.sub}</div></div><span class="sp"></span><span class="badge">${GD?'🏢 Gimnasio':RANKS[tier()].e+' '+RANKS[tier()].n}</span></div>
       <div class="progress-line"><i style="width:${100*t.done/t.all}%"></i></div>
+      ${S.day.start&&!S.day.done?'<div class="tiny" id="wclock" style="margin-top:4px;font-weight:800;color:var(--sage-dark)"></div>':''}
+      ${S.day.done&&doneSecs?`<div class="tiny" style="margin-top:4px;font-weight:800;color:var(--sage-dark)">⏱ Entrenaste ${fmtDur(doneSecs)}</div>`:''}
       <div class="tiny" style="margin-top:4px">${t.done} de ${t.all} series · ${GD?'mancuernas: peso de cada una · máquinas: el que marca la máquina':'peso por mancuerna'}</div>`;
     if(GD && !S.day.done) h+=`<div class="seg full" style="margin:12px 0 0">${Object.entries(EQUIP).map(([k,q])=>`<button class="${S.settings.equip===k?'on':''}" onclick="setEquip('${k}')">${q.e} ${q.n}</button>`).join('')}</div>`;
     if(S.day.done){
@@ -1522,6 +1537,64 @@ function viewFarm(){
 function exerciseHistory(id){
   return S.log.filter(e=>e.exercises.some(x=>x.id===id)).map(e=>{ const x=e.exercises.find(x=>x.id===id); return {date:e.date, name:x.name, sets:x.sets, max:Math.max(...x.sets.map(s=>s.kg)), vol:x.sets.reduce((a,s)=>a+s.kg*s.reps,0)}; });
 }
+/* ---------- Calendario: qué hiciste cada día ---------- */
+let CAL=null; // mes que se está viendo, 'AAAA-MM'
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function fmtDur(secs){ const m=Math.round(secs/60); return m<60 ? m+' min' : Math.floor(m/60)+' h '+String(m%60).padStart(2,'0')+' min'; }
+function archiveDay(d){
+  const k=(d.kegel||[]).filter(Boolean).length;
+  if(d.rest||d.stretch||d.cardio||d.finisher||k) S.hist[d.date]={rest:!!d.rest, stretch:!!d.stretch, cardio:!!d.cardio, finisher:!!d.finisher, kegel:k};
+}
+function dayExtras(ds){ if(ds!==S.day.date) return S.hist[ds]||{}; const d=S.day; return {rest:d.rest, stretch:d.stretch, cardio:d.cardio, finisher:d.finisher, kegel:d.kegel.filter(Boolean).length}; }
+function calMove(n){ const [y,m]=(CAL||today().slice(0,7)).split('-').map(Number); const d=new Date(y,m-1+n,1); CAL=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); render(); }
+function dayInProgress(ds){ return ds===S.day.date && !S.day.done && Object.values(S.day.sets).some(ss=>ss.some(s=>s.done)); }
+function calendarCard(){
+  const t=today(), ym=CAL||t.slice(0,7), [y,m]=ym.split('-').map(Number);
+  const startDow=(new Date(y,m-1,1).getDay()+6)%7, ndays=new Date(y,m,0).getDate();
+  const title=cap(new Date(y,m-1,1).toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
+  let cells='', nW=0, nR=0, secs=0;
+  for(let i=0;i<startDow;i++) cells+='<span></span>';
+  for(let d=1; d<=ndays; d++){
+    const ds=ym+'-'+String(d).padStart(2,'0'), ws=S.log.filter(e=>e.date===ds), ex=dayExtras(ds), fut=ds>t;
+    const icon = ws.length ? (GATES[ws[0].gate]||{icon:'🏋️'}).icon : dayInProgress(ds) ? '⏳' : ex.rest ? '🌾' : (ex.stretch||ex.cardio||ex.kegel) ? '✨' : '';
+    if(ws.length) nW++; else if(ex.rest) nR++;
+    ws.forEach(e=>secs+=e.secs||0);
+    cells+=`<button class="cd ${ws.length?'w':ex.rest?'r':''} ${ds===t?'today':''} ${fut?'f':''}" ${fut?'disabled':`onclick="showDay('${ds}')"`}>${d}<span class="ci">${icon}</span></button>`;
+  }
+  return `<div class="card"><div class="row"><button class="btn ghost small" onclick="calMove(-1)" aria-label="Mes anterior">‹</button>
+      <h3 class="sp" style="text-align:center">📅 ${title}</h3>
+      <button class="btn ghost small" onclick="calMove(1)" aria-label="Mes siguiente" ${ym>=t.slice(0,7)?'disabled':''}>›</button></div>
+    <div class="cal" style="margin-top:10px">${['L','M','X','J','V','S','D'].map(d=>`<span class="dw">${d}</span>`).join('')}${cells}</div>
+    <div class="tiny" style="text-align:center;margin-top:10px">${nW} ${plural(nW,'entreno','entrenos')} · ${nR} ${plural(nR,'descanso','descansos')}${secs?' · ⏱ '+fmtDur(secs)+' entrenando':''} · toca un día para verlo</div></div>`;
+}
+function showDay(ds){
+  const ws=S.log.filter(e=>e.date===ds), ex=dayExtras(ds);
+  const [y,m,dd]=ds.split('-').map(Number);
+  let h=`<h2>${cap(new Date(y,m-1,dd).toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'}))}</h2>`;
+  if(ws.length){
+    const sc={}; ws.forEach(e=>e.exercises.forEach(x=>{ const mm=EX_MUSCLES[x.id]; if(mm) for(const k in mm) sc[k]=(sc[k]||0)+mm[k]*x.sets.length; }));
+    const tot=Object.values(sc).reduce((a,b)=>a+b,0), mx=Math.max(1,...Object.values(sc));
+    ws.forEach(e=>{
+      const G=GATES[e.gate]||{icon:'🏋️', name:'Gimnasio'}, nsets=e.exercises.reduce((a,x)=>a+x.sets.length,0);
+      const vol=e.exercises.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+s.kg*s.reps,0),0);
+      h+=`<div class="hist"><div class="row" style="flex-wrap:wrap;gap:6px"><b>${G.icon} ${G.name}</b><span class="badge">${e.gym?'🏢 Gimnasio':'🏠 Casa'}</span>${e.secs?`<span class="badge green">⏱ ${fmtDur(e.secs)}</span>`:''}</div>
+        <div class="tiny" style="margin-top:4px">${nsets} series · ${Math.round(vol)} kg levantados en total</div>
+        <table class="t">${e.exercises.map(x=>`<tr><td>${esc(x.name)}</td><td style="white-space:nowrap;text-align:right">${x.sets.map(s=>fmtKg(s.kg)+'×'+s.reps).join(' · ')}</td></tr>`).join('')}</table></div>`;
+    });
+    h+=bodySvg(sc,mx,tot||1);
+  } else if(dayInProgress(ds)){
+    h+=`<p class="sub">⏳ Entreno en curso: aparecerá aquí cuando pulses «Terminar».</p>`;
+  }
+  const extras=[ex.rest&&'🌾 Descanso', ex.stretch&&'🧘 Estiramientos', ex.cardio&&'🏃 Cardio extra', ex.finisher&&'🔥 Circuito quemagrasa', ex.kegel&&`✨ Kegel ${ex.kegel}/3`].filter(Boolean);
+  if(extras.length) h+=`<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:12px">${extras.map(x=>`<span class="badge green">${x}</span>`).join('')}</div>`;
+  if(!ws.length && !extras.length && !dayInProgress(ds)) h+=`<p class="sub">No hay nada apuntado este día.</p>`;
+  showModal(h+`<div style="height:14px"></div><button class="btn" onclick="closeModal()">Cerrar</button>`);
+}
+function tickClock(){
+  const el=document.getElementById('wclock'); if(!el || !S.day.start || S.day.done) return;
+  el.textContent='⏱ Llevas '+fmtDur((Date.now()-S.day.start)/1000);
+}
+
 function viewProgress(){
   const total=S.log.length;
   const vol=S.log.reduce((a,e)=>a+e.exercises.reduce((b,x)=>b+x.sets.reduce((c,s)=>c+s.kg*s.reps,0),0),0);
@@ -1530,6 +1603,7 @@ function viewProgress(){
     <div class="tile"><div class="v">🔥 ${currentStreak()}</div><div class="l">Racha (mejor: ${S.bestStreak||0})</div></div>
     <div class="tile"><div class="v">${vol>=1000?fmtKg(Math.round(vol/100)/10)+' t':Math.round(vol)+' kg'}</div><div class="l">Peso total levantado</div></div>
     <div class="tile"><div class="v">${S.animals.length} 🐔</div><div class="l">Animales vivos</div></div></div>`;
+  h+=calendarCard();
 
   h+=bodyCard();
   h+=musclesCard();
@@ -1551,7 +1625,7 @@ function viewProgress(){
   h+=`<div class="sec-title">Historial</div><div class="card">`;
   if(!S.log.length) h+=`<p class="sub" style="margin:0">Todavía no hay entrenos guardados.</p>`;
   S.log.slice().reverse().slice(0,40).forEach(e=>{
-    h+=`<div class="hist"><div class="row"><b>${(GATES[e.gate]||{icon:'🏋️'}).icon} ${(GATES[e.gate]||{name:'Gimnasio'}).name}${e.gym?' · 🏢':''}</b><span class="tiny">${fmtDate(e.date)} · ${RANKS[e.tier].n}</span><span class="sp"></span><button class="btn ghost small" onclick="delLog('${e.id}')" aria-label="Borrar">🗑</button></div>
+    h+=`<div class="hist"><div class="row"><b>${(GATES[e.gate]||{icon:'🏋️'}).icon} ${(GATES[e.gate]||{name:'Gimnasio'}).name}${e.gym?' · 🏢':''}</b><span class="tiny">${fmtDate(e.date)}${e.secs?' · ⏱ '+fmtDur(e.secs):''}</span><span class="sp"></span><button class="btn ghost small" onclick="delLog('${e.id}')" aria-label="Borrar">🗑</button></div>
       <div class="tiny" style="margin-top:4px">${e.exercises.map(x=>`${esc(x.name)}: ${x.sets.map(s=>fmtKg(s.kg)+'×'+s.reps).join(', ')}`).join('<br>')}</div></div>`;
   });
   h+=`</div>`;
@@ -1686,6 +1760,7 @@ function migrate(s){
 S=migrate(load());
 render();
 setInterval(checkReminders, 30000);
+setInterval(tickClock, 15000);
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
 </body>
