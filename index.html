@@ -168,6 +168,12 @@ table.t{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}
 table.t td,table.t th{padding:8px 4px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
 table.t th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-top:none}
 .hist{border-top:1px solid var(--line);padding:12px 0}
+.exlist{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.exb{border:1px solid var(--line2);border-radius:12px;padding:8px 10px;font-size:13px;font-weight:800;background:#fff;text-align:left;color:var(--ink);line-height:1.25}
+.exb small{display:block;margin-top:3px;font-size:11px;font-weight:700;color:var(--muted)}
+.exb small.up{color:var(--sage-dark)} .exb small.down{color:#B4412E}
+.exb.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.exb.on small{color:rgba(255,255,255,.75)}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal .dw{font-size:11px;font-weight:800;color:var(--muted);text-align:center;padding-bottom:2px}
 .cd{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--ink2);padding:0;min-width:0}
@@ -1327,7 +1333,36 @@ function toast(msg){
 }
 
 /* ---------- Render ---------- */
-let currentTab='home', chartEx=null;
+let currentTab='home', chartEx=null, PF={day:'all', eq:'all'}; // filtros del selector de ejercicios
+/* A qué día (empuje/tirón/pierna) y material pertenece cada ejercicio, según dónde sale en las rutinas */
+let EX_CAT=null;
+function exCat(id){
+  if(!EX_CAT){
+    EX_CAT={};
+    ['push','pull','legs'].forEach(g=>{
+      GATES[g].tiers.flat().forEach(([x])=>{ EX_CAT[x]=EX_CAT[x]||{day:g, eq:'db'}; });
+      GYM[g].slots.forEach(sl=>{ EX_CAT[sl.db[0]]=EX_CAT[sl.db[0]]||{day:g, eq:'db'}; EX_CAT[sl.mq[0]]={day:g, eq:'mq'}; });
+    });
+  }
+  return EX_CAT[id]||{day:'other', eq:'db'};
+}
+// valor de una sesión para comparar: kg × reps de todas las series (o reps si va sin peso)
+function sessionVal(r, byReps){ return byReps ? r.sets.reduce((a,s)=>a+s.reps,0) : r.vol; }
+function exPicker(ids){
+  const lastDate={}; S.log.forEach(e=>e.exercises.forEach(x=>{ if(!lastDate[x.id]||e.date>lastDate[x.id]) lastDate[x.id]=e.date; }));
+  const shown=ids.filter(id=>(PF.day==='all'||exCat(id).day===PF.day) && (PF.eq==='all'||exCat(id).eq===PF.eq))
+    .sort((a,b)=>lastDate[b].localeCompare(lastDate[a]));
+  if(shown.length && !shown.includes(chartEx)) chartEx=shown[0];
+  const segF=(key,opts)=>`<div class="seg full">${opts.map(([k,l])=>`<button class="${PF[key]===k?'on':''}" onclick="PF.${key}='${k}';render()">${l}</button>`).join('')}</div>`;
+  let h=segF('day',[['all','Todos'],['push','💪 Empuje'],['pull','🪣 Tirón'],['legs','🦵 Pierna']])
+    + segF('eq',[['all','Todo'],['db','💪 Mancuernas'],['mq','🏋️ Máquinas']]);
+  if(!shown.length) return h+`<p class="sub" style="margin:4px 0 0">Todavía no has hecho ningún ejercicio de este tipo.</p>`;
+  return h+`<div class="exlist">${shown.map(id=>{
+    const hs=exerciseHistory(id), br=hs.every(r=>r.vol===0);
+    const p = hs.length>1 && sessionVal(hs[hs.length-2],br)>0 ? Math.round(100*(sessionVal(hs[hs.length-1],br)-sessionVal(hs[hs.length-2],br))/sessionVal(hs[hs.length-2],br)) : null;
+    return `<button class="exb ${id===chartEx?'on':''}" onclick="chartEx='${id}';render()">${esc(EX[id].n)}<small class="${p>0?'up':p<0?'down':''}">${p==null?'1 sesión':(p>0?'▲ +':p<0?'▼ ':'= ')+p+' %'} · ${fmtDate(lastDate[id])}</small></button>`;
+  }).join('')}</div>`;
+}
 function switchTab(t){ currentTab=t; render(); window.scrollTo(0,0); }
 
 function render(){
@@ -1612,16 +1647,18 @@ function viewProgress(){
   if(!ids.length){
     h+=`<p class="sub">Cuando termines tu primer entreno, aquí verás cómo sube el peso de cada ejercicio.</p></div>`;
   } else {
-    if(!chartEx||!ids.includes(chartEx)) chartEx=ids[0];
+    if(chartEx&&!ids.includes(chartEx)) chartEx=null;
+    h+=exPicker(ids);
+    if(!chartEx) chartEx=ids[0];
     const hist=exerciseHistory(chartEx);
     // se compara el trabajo total de la sesión (kg × reps de todas las series); sin peso, las repeticiones totales
-    const byReps=hist.every(r=>r.vol===0), val=r=>byReps ? r.sets.reduce((a,s)=>a+s.reps,0) : r.vol;
+    const byReps=hist.every(r=>r.vol===0), val=r=>sessionVal(r, byReps);
     const unit=byReps?'reps':'kg', fmtV=v=>Math.round(v).toLocaleString('es-ES')+' '+unit;
     const pct=(a,b)=>b>0?Math.round(100*(a-b)/b):0;
     const lastV=val(hist[hist.length-1]), prevV=hist.length>1?val(hist[hist.length-2]):null, firstV=val(hist[0]);
     const badge=(p,txt)=>`<span class="badge ${p>0?'green':p<0?'red':''}">${p>0?'▲ +':p<0?'▼ ':''}${p} % ${txt}</span>`;
-    h+=`<select class="sel" onchange="chartEx=this.value;render()">${ids.map(id=>`<option value="${id}" ${id===chartEx?'selected':''}>${esc(EX[id].n)}</option>`).join('')}</select>
-      <div class="row" style="margin-top:12px;align-items:baseline;flex-wrap:wrap"><span style="font-size:28px;font-weight:900;white-space:nowrap">${fmtV(lastV)}</span><span class="sub">${byReps?'repeticiones totales':'total levantado (kg × reps)'} · última sesión</span></div>
+    h+=`<div class="row" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);"><b style="font-size:16px">${esc(EX[chartEx].n)}</b></div>
+      <div class="row" style="margin-top:6px;align-items:baseline;flex-wrap:wrap"><span style="font-size:28px;font-weight:900;white-space:nowrap">${fmtV(lastV)}</span><span class="sub">${byReps?'repeticiones totales':'total levantado (kg × reps)'} · última sesión</span></div>
       ${hist.length>1?`<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${badge(pct(lastV,prevV),'vs la anterior')}${hist.length>2?badge(pct(lastV,firstV),'desde el inicio'):''}</div>`:''}
       ${byReps?'':`<div class="row tiny" style="gap:14px;margin-top:12px;font-weight:800"><span style="color:var(--sage-dark)">━ Total levantado (kg, izq.)</span><span style="color:var(--comb)">┅ Peso máximo (kg, dcha.)</span></div>`}
       ${chartBox('ex', hist.map(r=>({date:r.date, v:val(r), v2:byReps?null:r.max, tip:`${fmtDate(r.date)} · <b>${fmtV(val(r))}</b><br><span style="opacity:.75;font-weight:600">${r.sets.map(q=>fmtKg(q.kg)+'×'+q.reps).join(' · ')}</span>${byReps?'':'<br><span style="color:#F6B4A6">Máximo: '+fmtKg(r.max)+' kg</span>'}`})), {label:byReps?'Repeticiones totales por sesión':'Total levantado y peso máximo por sesión'})}
