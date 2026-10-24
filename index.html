@@ -1614,11 +1614,17 @@ function viewProgress(){
   } else {
     if(!chartEx||!ids.includes(chartEx)) chartEx=ids[0];
     const hist=exerciseHistory(chartEx);
-    const first=hist[0].max, lastV=hist[hist.length-1].max, diff=Math.round((lastV-first)*100)/100;
+    // se compara el trabajo total de la sesión (kg × reps de todas las series); sin peso, las repeticiones totales
+    const byReps=hist.every(r=>r.vol===0), val=r=>byReps ? r.sets.reduce((a,s)=>a+s.reps,0) : r.vol;
+    const unit=byReps?'reps':'kg', fmtV=v=>Math.round(v).toLocaleString('es-ES')+' '+unit;
+    const pct=(a,b)=>b>0?Math.round(100*(a-b)/b):0;
+    const lastV=val(hist[hist.length-1]), prevV=hist.length>1?val(hist[hist.length-2]):null, firstV=val(hist[0]);
+    const badge=(p,txt)=>`<span class="badge ${p>0?'green':p<0?'red':''}">${p>0?'▲ +':p<0?'▼ ':''}${p} % ${txt}</span>`;
     h+=`<select class="sel" onchange="chartEx=this.value;render()">${ids.map(id=>`<option value="${id}" ${id===chartEx?'selected':''}>${esc(EX[id].n)}</option>`).join('')}</select>
-      <div class="row" style="margin-top:12px;align-items:baseline"><span style="font-size:28px;font-weight:900;white-space:nowrap">${fmtKg(lastV)} kg</span><span class="sub">peso máximo · última sesión</span><span class="sp"></span>
-      ${hist.length>1?`<span class="badge ${diff>0?'green':diff<0?'red':''}">${diff>0?'▲ +':diff<0?'▼ ':''}${fmtKg(diff)} kg desde el inicio</span>`:''}</div>
-      ${chartBox('ex', hist.map(r=>({date:r.date, v:r.max, tip:`${fmtDate(r.date)} · <b>${fmtKg(r.max)} kg</b><br><span style="opacity:.75;font-weight:600">${r.sets.map(q=>fmtKg(q.kg)+'×'+q.reps).join(' · ')}</span>`})), {label:'Peso máximo por sesión'})}
+      <div class="row" style="margin-top:12px;align-items:baseline;flex-wrap:wrap"><span style="font-size:28px;font-weight:900;white-space:nowrap">${fmtV(lastV)}</span><span class="sub">${byReps?'repeticiones totales':'total levantado (kg × reps)'} · última sesión</span></div>
+      ${hist.length>1?`<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${badge(pct(lastV,prevV),'vs la anterior')}${hist.length>2?badge(pct(lastV,firstV),'desde el inicio'):''}</div>`:''}
+      ${chartBox('ex', hist.map(r=>({date:r.date, v:val(r), tip:`${fmtDate(r.date)} · <b>${fmtV(val(r))}</b><br><span style="opacity:.75;font-weight:600">${r.sets.map(q=>fmtKg(q.kg)+'×'+q.reps).join(' · ')}${byReps?'':' · máx. '+fmtKg(r.max)+' kg'}</span>`})), {label:byReps?'Repeticiones totales por sesión':'Total levantado por sesión'})}
+      <p class="tiny" style="margin:6px 0 0">Suma de todas las series: si subes peso <b>o</b> repeticiones, la línea sube.</p>
       <table class="t"><tr><th>Fecha</th><th>Series (kg × reps)</th></tr>${hist.slice().reverse().slice(0,12).map(r=>`<tr><td style="white-space:nowrap">${fmtDate(r.date)}</td><td>${r.sets.map(s=>`${fmtKg(s.kg)}×${s.reps}`).join(' · ')}</td></tr>`).join('')}</table></div>`;
   }
 

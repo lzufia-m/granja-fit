@@ -4,7 +4,7 @@ App de entrenamiento con mancuernas (en casa) o en el gimnasio, basada en [Ascen
 
 - **Entreno**: ciclo Empuje → Tirón → Pierna → Empuje → Tirón → Pierna → Descanso (la versión con mancuernas de Ascension System, con 6 niveles de dificultad que suben con tu nivel).
 - **Casa o gimnasio** (arriba en *Hoy* o en Ajustes): el orden Empuje → Tirón → Pierna es uno solo y sigue igual entrenes donde entrenes. En el gimnasio cada día tiene su versión (6 ejercicios, 45-55 min) con **mancuernas** o **máquinas**: eliges el material para todo y puedes cambiar ejercicios sueltos con ⇄ (se recuerda). Tras las pesas, **cardio extra** guiado de 15-17 min (cinta en cuesta, bici con intervalos, elíptica suave). Los ejercicios que coinciden comparten historial de pesos.
-- **Pesos**: apunta kg y repeticiones de cada serie; la próxima vez se rellenan solos. Gráfico de progreso por ejercicio.
+- **Pesos**: apunta kg y repeticiones de cada serie; la próxima vez se rellenan solos. Gráfico de progreso por ejercicio con el total levantado (kg × reps de todas las series), que sube si mejoras en peso o en repeticiones.
 - **Estiramientos** guiados al terminar (~10-12 min, según el día) y **Kegel** 3 veces al día.
 - **Objetivo** (bajar / mantener / subir de peso): cambia el descanso entre series, añade un circuito quemagrasa si quieres bajar, y da consejos de comida según cómo evoluciona tu peso (media de 7 días y ritmo semanal).
 - **Sobrecarga progresiva**: si en la última sesión llegaste al máximo de repeticiones en todas las series, la app te avisa de que deberías subir peso (no lo sube sola).
