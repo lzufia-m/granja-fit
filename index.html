@@ -1623,7 +1623,8 @@ function viewProgress(){
     h+=`<select class="sel" onchange="chartEx=this.value;render()">${ids.map(id=>`<option value="${id}" ${id===chartEx?'selected':''}>${esc(EX[id].n)}</option>`).join('')}</select>
       <div class="row" style="margin-top:12px;align-items:baseline;flex-wrap:wrap"><span style="font-size:28px;font-weight:900;white-space:nowrap">${fmtV(lastV)}</span><span class="sub">${byReps?'repeticiones totales':'total levantado (kg × reps)'} · última sesión</span></div>
       ${hist.length>1?`<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${badge(pct(lastV,prevV),'vs la anterior')}${hist.length>2?badge(pct(lastV,firstV),'desde el inicio'):''}</div>`:''}
-      ${chartBox('ex', hist.map(r=>({date:r.date, v:val(r), tip:`${fmtDate(r.date)} · <b>${fmtV(val(r))}</b><br><span style="opacity:.75;font-weight:600">${r.sets.map(q=>fmtKg(q.kg)+'×'+q.reps).join(' · ')}${byReps?'':' · máx. '+fmtKg(r.max)+' kg'}</span>`})), {label:byReps?'Repeticiones totales por sesión':'Total levantado por sesión'})}
+      ${byReps?'':`<div class="row tiny" style="gap:14px;margin-top:12px;font-weight:800"><span style="color:var(--sage-dark)">━ Total levantado (kg, izq.)</span><span style="color:var(--comb)">┅ Peso máximo (kg, dcha.)</span></div>`}
+      ${chartBox('ex', hist.map(r=>({date:r.date, v:val(r), v2:byReps?null:r.max, tip:`${fmtDate(r.date)} · <b>${fmtV(val(r))}</b><br><span style="opacity:.75;font-weight:600">${r.sets.map(q=>fmtKg(q.kg)+'×'+q.reps).join(' · ')}</span>${byReps?'':'<br><span style="color:#F6B4A6">Máximo: '+fmtKg(r.max)+' kg</span>'}`})), {label:byReps?'Repeticiones totales por sesión':'Total levantado y peso máximo por sesión'})}
       <p class="tiny" style="margin:6px 0 0">Suma de todas las series: si subes peso <b>o</b> repeticiones, la línea sube.</p>
       <table class="t"><tr><th>Fecha</th><th>Series (kg × reps)</th></tr>${hist.slice().reverse().slice(0,12).map(r=>`<tr><td style="white-space:nowrap">${fmtDate(r.date)}</td><td>${r.sets.map(s=>`${fmtKg(s.kg)}×${s.reps}`).join(' · ')}</td></tr>`).join('')}</table></div>`;
   }
@@ -1650,7 +1651,8 @@ function delLog(id){
    pts = [{date, v, tip}] · opts.ref = línea de referencia opcional (p. ej. peso objetivo) */
 const CHS={};
 function chartSvg(key, pts, opts={}){
-  const W=340, H=180, pl=34, pr=12, pt=14, pb=26;
+  const two=pts.some(r=>r.v2!=null);
+  const W=340, H=180, pl=34, pr=two?34:12, pt=14, pb=26;
   const vals=pts.map(r=>r.v).concat(opts.ref!=null?[opts.ref]:[]);
   let lo=Math.min(...vals), hi=Math.max(...vals);
   if(hi-lo<2){ lo-=1; hi+=1; }
@@ -1658,9 +1660,20 @@ function chartSvg(key, pts, opts={}){
   lo=Math.max(0,Math.floor(lo/step)*step); hi=Math.ceil(hi/step)*step;
   const x=i=>pts.length===1?(pl+(W-pl-pr)/2):pl+i*(W-pl-pr)/(pts.length-1);
   const y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo));
-  CHS[key]={pts, x, y, W, H};
+  // segunda línea (opcional) con su propia escala a la derecha y las mismas rayas de fondo
+  let y2=null, lo2=0, step2=1;
+  if(two){
+    const n=Math.round((hi-lo)/step), v2s=pts.map(r=>r.v2);
+    let a=Math.min(...v2s), b=Math.max(...v2s); if(b-a<1){ a=Math.max(0,a-1); b+=1; }
+    const mag2=Math.pow(10,Math.floor(Math.log10((b-a)/n)));
+    step2=[1,2,2.5,5,10,20,25,50,100].map(m=>m*mag2).find(s=>Math.max(0,Math.floor(a/s)*s)+n*s>=b);
+    lo2=Math.max(0,Math.floor(a/step2)*step2);
+    y2=v=>pt+(H-pt-pb)*(1-(v-lo2)/(n*step2));
+  }
+  CHS[key]={pts, x, y, y2, W, H};
   let g='';
-  for(let v=lo; v<=hi+1e-9; v+=step){ g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-6}" y="${y(v)+4}" font-size="10" fill="var(--muted)" text-anchor="end">${fmtKg(Math.round(v*100)/100)}</text>`; }
+  for(let v=lo; v<=hi+1e-9; v+=step){ g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-6}" y="${y(v)+4}" font-size="10" fill="${two?'var(--sage-dark)':'var(--muted)'}" text-anchor="end">${fmtKg(Math.round(v*100)/100)}</text>`;
+    if(two){ const v2=lo2+Math.round((v-lo)/step)*step2; g+=`<text x="${W-pr+6}" y="${y(v)+4}" font-size="10" fill="var(--comb)" text-anchor="start">${fmtKg(Math.round(v2*100)/100)}</text>`; } }
   const poly=pts.map((r,i)=>`${x(i)},${y(r.v)}`).join(' ');
   const lbl=i=>{ const [yy,mm,dd]=pts[i].date.split('-'); return `${+dd}/${+mm}`; };
   const xl = pts.length===1 ? [0] : [0, pts.length-1];
@@ -1670,8 +1683,11 @@ function chartSvg(key, pts, opts={}){
     ${xl.map(i=>`<text x="${x(i)}" y="${H-6}" font-size="10" fill="var(--muted)" text-anchor="${pts.length===1?'middle':i===0?'start':'end'}">${lbl(i)}</text>`).join('')}
     <line class="xh" x1="0" x2="0" y1="${pt}" y2="${H-pb}" stroke="var(--line2)" stroke-width="1" opacity="0"/>
     ${pts.length>1?`<polyline points="${poly}" fill="none" stroke="var(--sage)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`:''}
+    ${two&&pts.length>1?`<polyline points="${pts.map((r,i)=>x(i)+','+y2(r.v2)).join(' ')}" fill="none" stroke="var(--comb)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>`:''}
     ${pts.length<=40?pts.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r.v)}" r="4" fill="var(--sage)" stroke="#fff" stroke-width="2"/>`).join(''):''}
+    ${two&&pts.length<=40?pts.map((r,i)=>`<circle cx="${x(i)}" cy="${y2(r.v2)}" r="3.5" fill="var(--comb)" stroke="#fff" stroke-width="2"/>`).join(''):''}
     <circle class="hp" r="6" fill="var(--sage)" stroke="#fff" stroke-width="2" opacity="0"/>
+    ${two?'<circle class="hp2" r="5.5" fill="var(--comb)" stroke="#fff" stroke-width="2" opacity="0"/>':''}
     <rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>
   </svg>`;
 }
@@ -1686,10 +1702,11 @@ function bindCharts(){
       const h=C.pts[bi], cx=C.x(bi), cy=C.y(h.v);
       xh.setAttribute('x1',cx); xh.setAttribute('x2',cx); xh.setAttribute('opacity',1);
       hp.setAttribute('cx',cx); hp.setAttribute('cy',cy); hp.setAttribute('opacity',1);
+      const hp2=svg.querySelector('.hp2'); if(hp2&&C.y2){ hp2.setAttribute('cx',cx); hp2.setAttribute('cy',C.y2(h.v2)); hp2.setAttribute('opacity',1); }
       tip.innerHTML=h.tip;
       tip.style.left=Math.min(Math.max(cx*r.width/C.W, 70), r.width-70)+'px'; tip.style.top=(cy*r.height/C.H)+'px'; tip.classList.add('on');
     };
-    const leave=()=>{ tip.classList.remove('on'); xh.setAttribute('opacity',0); hp.setAttribute('opacity',0); };
+    const leave=()=>{ tip.classList.remove('on'); xh.setAttribute('opacity',0); hp.setAttribute('opacity',0); const hp2=svg.querySelector('.hp2'); if(hp2) hp2.setAttribute('opacity',0); };
     svg.addEventListener('pointermove',move); svg.addEventListener('pointerdown',move); svg.addEventListener('pointerleave',leave);
   });
 }
