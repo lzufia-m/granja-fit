@@ -310,6 +310,8 @@ const EX = {
   seatrow:   {n:'Remo sentado en máquina o polea', d:'Pecho alto y espalda recta. Tira de las asas hacia el ombligo juntando las escápulas y vuelve estirando los brazos.'},
   latpull:   {n:'Jalón al pecho', d:'Agarre algo más ancho que los hombros. Tira de la barra hacia la parte alta del pecho, sacando pecho, y sube controlando.'},
   legcurl:   {n:'Curl femoral en máquina', d:'Tumbado o sentado. Lleva los talones hacia el culo, aguanta 1 s y vuelve despacio sin soltar del todo.'},
+  hipthrustbb:{n:'Hip thrust con barra', d:'Espalda alta apoyada en el banco, barra sobre la cadera con una almohadilla. Pies a la anchura de la cadera. Sube apretando glúteos hasta quedar recta, barbilla al pecho, y baja despacio. Apunta el peso total (barra + discos).'},
+  stepup:    {n:'Subida al banco con mancuernas', d:'Un pie entero sobre un banco o cajón, mancuernas en las manos. Sube empujando con el talón de esa pierna (sin impulsarte con la de abajo) y baja despacio.'},
   hipthrustm:{n:'Hip thrust en máquina (o patada de glúteo)', d:'En la máquina de hip thrust, o si no hay, patada de glúteo en máquina o polea. Aprieta glúteo arriba 1 s.'},
   revfly:    {n:'Contractora inversa (deltoide posterior)', d:'Sentado de cara al respaldo en la máquina de aperturas. Abre los brazos hacia atrás con los codos casi rectos.'},
   mcurl:     {n:'Curl de bíceps en máquina o polea', d:'Codos fijos (en el apoyo o pegados al cuerpo). Sube contrayendo el bíceps y baja despacio.'},
@@ -354,7 +356,7 @@ const EX_MUSCLES = {
   goblet:{quads:1,glutes:.5,adductors:.3,abs:.3}, legpress:{quads:1,glutes:.5,adductors:.3}, legext:{quads:1},
   bulg:{quads:1,glutes:.7,adductors:.3}, lunge:{quads:1,glutes:.7,adductors:.3}, sumo:{adductors:1,quads:.7,glutes:.7},
   rdl:{hams:1,glutes:.7,lowback:.5}, sldl:{hams:1,glutes:.7,lowback:.3}, legcurl:{hams:1,calves:.3},
-  hipthrust:{glutes:1,hams:.5}, hipthrustm:{glutes:1,hams:.5},
+  hipthrust:{glutes:1,hams:.5}, hipthrustm:{glutes:1,hams:.5}, hipthrustbb:{glutes:1,hams:.5}, stepup:{glutes:1,quads:.7},
   adductor:{adductors:1}, abductor:{abductors:1,glutes:.5}, sideabd:{abductors:1,glutes:.3},
   calf:{calves:1}, calf1:{calves:1}, mcalf:{calves:1}, dbcrunch:{abs:1,obliques:.3}, mcrunch:{abs:1,obliques:.3},
   rotary:{obliques:1,abs:.4}, russian:{obliques:1,abs:.5}, sdip:{triceps:1,chest:.4}, benchdip:{triceps:1,chest:.3,delts:.3},
@@ -447,7 +449,7 @@ const GYM = {
     {db:['goblet','4x8-12','El principal del día: ve pesado con buena técnica.'], mq:['legpress','4x8-12','El principal del día: ve pesado con buena técnica.']},
     {db:['rdl','4x8-12','Cadera atrás, espalda recta.'], mq:['legcurl','4x10-12','']},
     {db:['bulg','3x8-10 /pierna','Empieza con poco peso.'], mq:['legext','3x12-15','Aguanta 1 s arriba.']},
-    {db:['hipthrust','3x10-12','Aprieta 1 s arriba.'], mq:['hipthrustm','3x10-12','Aprieta 1 s arriba.']},
+    {db:['hipthrust','3x10-12','Aprieta 1 s arriba.'], mq:['hipthrustbb','3x10-12','Aprieta 1 s arriba. Si la barra no te va, cambia a mancuerna con ⇄.']},
     {db:['sumo','3x12-15','Cara interna del muslo.'], mq:['adductor','3x12-15','Cierra con control, sin que choquen las placas.']},
     {db:['sideabd','3x12-15 /pierna','Glúteo medio.'], mq:['abductor','3x12-15','Glúteo medio: aguanta 1 s abierto.']}
   ], warm:[['Bici o elíptica suave','5 min'],['Balanceos de pierna','10 por lado'],['Sentadillas sin peso','1×15'],['Primer ejercicio con muy poco peso','1×12']]}
@@ -485,9 +487,9 @@ Object.assign(GYM, {
     {db:['russian','3x12 /lado',''], mq:['rotary','3x12-15 /lado','Gira despacio, sin impulso.']}
   ], warm:[['Bici o cinta suave','5 min'],['Círculos de brazos y hombros','30 s cada sentido'],['Flexiones escapulares lentas','1×15'],['Primer ejercicio con muy poco peso','1×12']]},
   legsA:{ sub:GATES.legsA.sub, slots:[
-    {db:['hipthrust','4x8-12','El principal del día: ve pesado y aprieta 1 s arriba.'], mq:['hipthrustm','4x8-12','El principal del día: ve pesado y aprieta 1 s arriba.']},
+    {db:['bulg','4x8-10 /pierna','El principal del día: tronco un poco inclinado adelante para más glúteo.'], mq:['legpresshi','4x8-12','El principal del día: pies altos y abiertos, empuja con los talones.']},
     {db:['rdl','4x8-12','Cadera atrás, espalda recta.'], mq:['legcurl','3x10-12','']},
-    {db:['bulg','3x8-10 /pierna','Inclina un poco el tronco adelante: más glúteo.'], mq:['legpresshi','3x10-12','Pies altos y abiertos en la plataforma.']},
+    {db:['stepup','3x10 /pierna','Empuja con el talón de la pierna de arriba.'], mq:['bulg','3x8-10 /pierna','Con mancuernas, tronco un poco inclinado: más glúteo.']},
     {db:['sideabd','3x12-15 /pierna','Glúteo medio.'], mq:['abductor','3x12-15','Inclínate un poco adelante: más glúteo.']},
     {db:['glutekick','3x12-15 /pierna',''], mq:['cablekick','3x12-15 /pierna','']},
     {db:['sldl','3x10-12 /pierna','Control y equilibrio.'], mq:['backext','3x12-15','Redondea un poco la espalda alta y empuja con el glúteo.']}
@@ -496,7 +498,7 @@ Object.assign(GYM, {
     {db:['goblet','4x8-12','El principal del día: ve pesado con buena técnica.'], mq:['legpress','4x8-12','El principal del día: ve pesado con buena técnica.']},
     {db:['lunge','3x10 /pierna',''], mq:['legext','3x12-15','Aguanta 1 s arriba.']},
     {db:['sumo','3x12-15','Cara interna del muslo.'], mq:['adductor','3x12-15','Cierra con control, sin que choquen las placas.']},
-    {db:['hipthrust','3x10-12','Más ligero que en Pierna A: aguanta 2 s arriba.'], mq:['hipthrustm','3x10-12','Más ligero que en Pierna A: aguanta 2 s arriba.']},
+    {db:['hipthrust','4x8-12','Ve pesado y aprieta 1 s arriba.'], mq:['hipthrustbb','4x8-12','Ve pesado y aprieta 1 s arriba. Si la barra no te va, cambia a mancuerna con ⇄.']},
     {db:['calf','3x15-20',''], mq:['mcalf','3x12-15','']},
     {db:['dbcrunch','3x12-15',''], mq:['mcrunch','3x12-15','']}
   ], warm:[['Bici o elíptica suave','5 min'],['Sentadillas sin peso','1×15'],['Balanceos de pierna','10 por lado'],['Primer ejercicio con muy poco peso','1×12']]}
