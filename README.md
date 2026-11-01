@@ -12,6 +12,7 @@ App de entrenamiento con mancuernas (en casa) o en el gimnasio, basada en [Ascen
 - **Extras**: cada día tiene 6 ejercicios base y una lista de extras opcionales (⭐ = el que más conviene: lo menos trabajado en la semana y ya recuperado).
 - **Recuperación muscular**: mapa del cuerpo en verde/amarillo/rojo y aviso si el entreno de hoy toca músculos que aún no se han recuperado (48 h pequeños, 72 h grandes).
 - **Pausa** del entreno (el tiempo en pausa no cuenta), **notas** por ejercicio, **récords** (y 🏆 en el calendario), **resumen semanal** cada lunes con músculos olvidados, y **borrar el historial** de un ejercicio o de una sesión suelta.
+- **Fotos de progreso** (en *Progreso*): frente, lado y espalda; galería, comparar antes/después y recordatorio mensual en *Hoy*. Se guardan solo en el móvil (IndexedDB), fuera de la copia de seguridad; cada una se puede descargar.
 - **Calendario** (en *Progreso*): cada día con su icono (entreno, descanso, estiramientos/Kegel); al tocar un día ves el entreno completo, dónde lo hiciste, cuánto duró, los músculos y los extras.
 - **Duración**: el cronómetro empieza al marcar la primera serie y para al pulsar *Terminar*.
 - **Músculos trabajados**: dibujo del cuerpo (delante y detrás) coloreado según cuánto has trabajado cada músculo, hoy o en los últimos 7 días, con el porcentaje de cada uno.
