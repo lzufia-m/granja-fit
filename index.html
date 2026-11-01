@@ -458,9 +458,9 @@ const EXTRAS = {
   pull:[['facepull','3x12-15','','mq'], ['shrug','3x12-15','','db'], ['backext','3x12-15','','any'], ['rotary','3x12-15 /lado','Gira despacio, sin impulso.','mq'], ['russian','3x12 /lado','','db']],
   legs:[['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['lunge','3x10 /pierna','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db'], ['backext','3x12-15','','any']]
 };
-/* ---------- Rutina de 4 días con enfoque glúteo y pierna: Superior A → Pierna A → Superior B → Pierna B.
-   Pierna 2 veces por semana aunque entrenes solo 4 días; el tren superior se reparte entre A (más espalda
-   y postura) y B (más hombro y brazos). En casa se usa siempre la versión con mancuernas. ---------- */
+/* ---------- Rutina de 4 días con enfoque glúteo y pierna: Empuje → Pierna A → Tirón → Pierna B.
+   Pierna 2 veces por semana aunque entrenes solo 4 días. (Superior A/B se quedan definidos para el
+   historial, pero ya no están en el ciclo.) En casa se usa siempre la versión con mancuernas. ---------- */
 Object.assign(GATES, {
   upperA:{ name:'Superior A', sub:'Espalda · Pecho · Hombros · Tríceps', icon:'💪' },
   upperB:{ name:'Superior B', sub:'Hombros · Espalda · Pecho · Bíceps · Abdomen', icon:'🦾' },
@@ -507,7 +507,7 @@ Object.assign(EXTRAS, {
   legsA: [['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['adductor','3x12-15','','mq'], ['sumo','3x12-15','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db']],
   legsB: [['abductor','3x12-15','','mq'], ['sideabd','3x12-15 /pierna','','db'], ['cablekick','3x12-15 /pierna','','mq'], ['glutekick','3x12-15 /pierna','','db'], ['legcurl','3x10-12','','mq'], ['backext','3x12-15','','any']]
 });
-const CYCLE4 = ['upperA','legsA','upperB','legsB'];
+const CYCLE4 = ['push','legsA','pull','legsB'];
 const CHIP_LABEL = {upperA:'Sup. A', upperB:'Sup. B', legsA:'Pierna A', legsB:'Pierna B'};
 const CYCLE = ['push','pull','legs','push','pull','legs','rest'];
 const DAY_LABEL = {push:'Empuje', pull:'Tirón', legs:'Pierna', rest:'Descanso', upperA:'Superior A', upperB:'Superior B', legsA:'Pierna A', legsB:'Pierna B'};
@@ -882,7 +882,7 @@ function setSplit(v){
 }
 function chooseSplit(){
   showModal(`<h2>🗓️ Elige tu rutina</h2><p class="sub">Puedes cambiarla cuando quieras en Ajustes; tus pesos y tu historial se conservan.</p>
-    <button class="goal-opt ${S.settings.split==='ul'?'on':''}" style="width:100%;text-align:left;margin-top:10px" onclick="setSplit('ul')"><span style="font-size:28px">🍑</span><span><b>Glúteo y pierna · 4 días</b><br><span class="tiny">Superior A → Pierna A (glúteo) → Superior B → Pierna B (cuádriceps). Pierna y glúteo 2 veces por semana aunque vayas solo 3-4 días.</span></span></button>
+    <button class="goal-opt ${S.settings.split==='ul'?'on':''}" style="width:100%;text-align:left;margin-top:10px" onclick="setSplit('ul')"><span style="font-size:28px">🍑</span><span><b>Glúteo y pierna · 4 días</b><br><span class="tiny">Empuje → Pierna A (glúteo) → Tirón → Pierna B (cuádriceps). Pierna y glúteo 2 veces por semana aunque vayas solo 3-4 días.</span></span></button>
     <button class="goal-opt ${S.settings.split==='ppl'?'on':''}" style="width:100%;text-align:left;margin-top:8px" onclick="setSplit('ppl')"><span style="font-size:28px">⚖️</span><span><b>Equilibrada · 6 días</b><br><span class="tiny">Empuje → Tirón → Pierna, dos veces, y descanso. Ideal si entrenas 5-6 días por semana.</span></span></button>`);
 }
 // versión de gimnasio del día (o null si hoy toca en casa). Un entreno ya terminado mantiene dónde se hizo.
@@ -2032,7 +2032,7 @@ function viewSettings(){
     <div class="set-row"><div class="lb">Circuito quemagrasa<small>Unos 8-10 min de cardio con mancuernas tras las pesas (en casa; en el gimnasio tienes cardio extra con máquinas)</small></div><button class="switch ${S.settings.finisher?'on':''}" onclick="S.settings.finisher=!S.settings.finisher;save();render()" aria-label="Circuito quemagrasa"></button></div>
   </div>
   <div class="card"><h3>🏋️ Entreno</h3>
-    <div class="set-row"><div class="lb">Rutina<small>${split4()?'🍑 Glúteo y pierna · 4 días (Superior A → Pierna A → Superior B → Pierna B)':'⚖️ Equilibrada · 6 días (Empuje → Tirón → Pierna)'}</small></div><button class="btn sec small" onclick="chooseSplit()">Cambiar</button></div>
+    <div class="set-row"><div class="lb">Rutina<small>${split4()?'🍑 Glúteo y pierna · 4 días (Empuje → Pierna A → Tirón → Pierna B)':'⚖️ Equilibrada · 6 días (Empuje → Tirón → Pierna)'}</small></div><button class="btn sec small" onclick="chooseSplit()">Cambiar</button></div>
     <div class="set-row"><div class="lb">Dónde entrenas<small>El orden de la rutina es el mismo; en el gimnasio cambian los ejercicios y hay cardio extra</small></div><div class="seg">${[['home','Casa'],['gym','Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div></div>
     ${atGym()?`<div class="set-row"><div class="lb">Material en el gimnasio<small>Puedes cambiar cada ejercicio suelto con el botón ⇄</small></div><div class="seg">${Object.entries(EQUIP).map(([k,q])=>`<button class="${S.settings.equip===k?'on':''}" onclick="setEquip('${k}')">${q.n}</button>`).join('')}</div></div>`:''}
     <div class="set-row"><div class="lb">Descanso entre series<small>Se pone en marcha al marcar una serie</small></div>${seg('rest',[60,90,120,180],o=>o<120?o+'s':(o/60)+'m')}</div>
