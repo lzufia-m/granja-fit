@@ -317,6 +317,9 @@ const EX = {
   abductor:  {n:'Abductores en máquina', d:'Sentado con la espalda apoyada y las almohadillas por fuera de las rodillas. Abre las piernas empujando con el glúteo, aguanta 1 s y cierra despacio.'},
   sumo:      {n:'Sentadilla sumo con mancuerna', d:'Pies muy abiertos y puntas hacia fuera, una mancuerna colgando entre las piernas. Baja recto con el pecho alto y sube apretando la cara interna del muslo.'},
   sideabd:   {n:'Abducción tumbado de lado', d:'Tumbado de lado, pierna de abajo doblada y una mancuerna ligera apoyada sobre el muslo de arriba. Sube la pierna recta sin girar la cadera y baja lento.'},
+  legpresshi:{n:'Prensa con pies altos (glúteo)', d:'Pies altos y algo abiertos en la plataforma, puntas un poco hacia fuera. Baja hasta que la cadera se doble bien y empuja con los talones.'},
+  glutekick: {n:'Patada de glúteo con mancuerna', d:'A cuatro patas, una mancuerna ligera en el hueco de la rodilla. Sube la pierna doblada hacia el techo apretando el glúteo, sin arquear la espalda.'},
+  cablekick: {n:'Patada de glúteo en polea', d:'Tobillera en la polea baja. Agarrado a la máquina, lleva la pierna recta hacia atrás apretando el glúteo, sin arquear la espalda. Vuelve despacio.'},
   rotary:    {n:'Rotación de torso en máquina (Rotary Torso)', d:'Sentado, piernas sujetas entre las almohadillas y el pecho contra el apoyo. Gira el tronco hacia un lado de forma controlada y vuelve despacio; luego el otro lado. Muévete desde la cintura, no con los brazos.'},
   russian:   {n:'Giros rusos con mancuerna', d:'Sentado en el suelo, tronco un poco inclinado atrás y una mancuerna con las dos manos. Gira llevándola a un lado de la cadera y luego al otro, despacio.'},
   sdip:      {n:'Fondos sentado en máquina', d:'Sentado con la espalda apoyada, agarra las asas a los lados y empuja hacia abajo hasta estirar los brazos. Sube despacio hasta que los codos formen 90°.'},
@@ -355,7 +358,8 @@ const EX_MUSCLES = {
   adductor:{adductors:1}, abductor:{abductors:1,glutes:.5}, sideabd:{abductors:1,glutes:.3},
   calf:{calves:1}, calf1:{calves:1}, mcalf:{calves:1}, dbcrunch:{abs:1,obliques:.3}, mcrunch:{abs:1,obliques:.3},
   rotary:{obliques:1,abs:.4}, russian:{obliques:1,abs:.5}, sdip:{triceps:1,chest:.4}, benchdip:{triceps:1,chest:.3,delts:.3},
-  backext:{lowback:1,glutes:.5,hams:.4}, facepull:{reardelts:1,traps:.6}
+  backext:{lowback:1,glutes:.5,hams:.4}, facepull:{reardelts:1,traps:.6},
+  legpresshi:{glutes:1,quads:.7,hams:.3}, glutekick:{glutes:1,hams:.3}, cablekick:{glutes:1,hams:.3}
 };
 /* Dibujo del cuerpo (mitad izquierda; la derecha se dibuja en espejo). [músculo o null para la silueta, path] */
 const BODY = {
@@ -454,8 +458,59 @@ const EXTRAS = {
   pull:[['facepull','3x12-15','','mq'], ['shrug','3x12-15','','db'], ['backext','3x12-15','','any'], ['rotary','3x12-15 /lado','Gira despacio, sin impulso.','mq'], ['russian','3x12 /lado','','db']],
   legs:[['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['lunge','3x10 /pierna','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db'], ['backext','3x12-15','','any']]
 };
+/* ---------- Rutina de 4 días con enfoque glúteo y pierna: Superior A → Pierna A → Superior B → Pierna B.
+   Pierna 2 veces por semana aunque entrenes solo 4 días; el tren superior se reparte entre A (más espalda
+   y postura) y B (más hombro y brazos). En casa se usa siempre la versión con mancuernas. ---------- */
+Object.assign(GATES, {
+  upperA:{ name:'Superior A', sub:'Espalda · Pecho · Hombros · Tríceps', icon:'💪' },
+  upperB:{ name:'Superior B', sub:'Hombros · Espalda · Pecho · Bíceps · Abdomen', icon:'🦾' },
+  legsA: { name:'Pierna A · Glúteo', sub:'Glúteo · Femoral · Glúteo medio', icon:'🍑' },
+  legsB: { name:'Pierna B · Cuádriceps', sub:'Cuádriceps · Glúteo · Aductores · Gemelos · Abdomen', icon:'🦵' }
+});
+Object.assign(GYM, {
+  upperA:{ sub:GATES.upperA.sub, slots:[
+    {db:['row','4x8-12 /lado','El principal del día: ve pesado.'], mq:['latpull','4x8-12','El principal del día: ve pesado.']},
+    {db:['bench','3x8-12',''], mq:['chestpress','3x8-12','']},
+    {db:['csrow','3x10-12',''], mq:['seatrow','3x10-12','']},
+    {db:['lateral','3x12-15','Poco peso, sin balanceo.'], mq:['mlateral','3x12-15','Poco peso, sin balanceo.']},
+    {db:['rear','3x12-15','Hombros atrás: postura.'], mq:['facepull','3x12-15','Hombros atrás: postura.']},
+    {db:['triceps','3x12-15',''], mq:['pushdown','3x12-15','']}
+  ], warm:[['Remo (máquina de cardio) o bici suave','5 min'],['Círculos de brazos','30 s cada sentido'],['Juntar escápulas (sin peso)','1×15'],['Primer ejercicio con muy poco peso','1×12']]},
+  upperB:{ sub:GATES.upperB.sub, slots:[
+    {db:['shpress','4x8-12','El principal del día: ve pesado.'], mq:['mshpress','4x8-12','El principal del día: ve pesado.']},
+    {db:['pullover','3x10-12',''], mq:['latnarrow','3x10-12','']},
+    {db:['incline','3x10-12',''], mq:['mincline','3x10-12','']},
+    {db:['lateral','3x12-15','Poco peso, sin balanceo.'], mq:['mlateral','3x12-15','Poco peso, sin balanceo.']},
+    {db:['curl','3x10-12',''], mq:['mcurl','3x10-12','']},
+    {db:['russian','3x12 /lado',''], mq:['rotary','3x12-15 /lado','Gira despacio, sin impulso.']}
+  ], warm:[['Bici o cinta suave','5 min'],['Círculos de brazos y hombros','30 s cada sentido'],['Flexiones escapulares lentas','1×15'],['Primer ejercicio con muy poco peso','1×12']]},
+  legsA:{ sub:GATES.legsA.sub, slots:[
+    {db:['hipthrust','4x8-12','El principal del día: ve pesado y aprieta 1 s arriba.'], mq:['hipthrustm','4x8-12','El principal del día: ve pesado y aprieta 1 s arriba.']},
+    {db:['rdl','4x8-12','Cadera atrás, espalda recta.'], mq:['legcurl','3x10-12','']},
+    {db:['bulg','3x8-10 /pierna','Inclina un poco el tronco adelante: más glúteo.'], mq:['legpresshi','3x10-12','Pies altos y abiertos en la plataforma.']},
+    {db:['sideabd','3x12-15 /pierna','Glúteo medio.'], mq:['abductor','3x12-15','Inclínate un poco adelante: más glúteo.']},
+    {db:['glutekick','3x12-15 /pierna',''], mq:['cablekick','3x12-15 /pierna','']},
+    {db:['sldl','3x10-12 /pierna','Control y equilibrio.'], mq:['backext','3x12-15','Redondea un poco la espalda alta y empuja con el glúteo.']}
+  ], warm:[['Bici o elíptica suave','5 min'],['Puente de glúteo sin peso','1×15'],['Balanceos de pierna','10 por lado'],['Primer ejercicio con muy poco peso','1×12']]},
+  legsB:{ sub:GATES.legsB.sub, slots:[
+    {db:['goblet','4x8-12','El principal del día: ve pesado con buena técnica.'], mq:['legpress','4x8-12','El principal del día: ve pesado con buena técnica.']},
+    {db:['lunge','3x10 /pierna',''], mq:['legext','3x12-15','Aguanta 1 s arriba.']},
+    {db:['sumo','3x12-15','Cara interna del muslo.'], mq:['adductor','3x12-15','Cierra con control, sin que choquen las placas.']},
+    {db:['hipthrust','3x10-12','Más ligero que en Pierna A: aguanta 2 s arriba.'], mq:['hipthrustm','3x10-12','Más ligero que en Pierna A: aguanta 2 s arriba.']},
+    {db:['calf','3x15-20',''], mq:['mcalf','3x12-15','']},
+    {db:['dbcrunch','3x12-15',''], mq:['mcrunch','3x12-15','']}
+  ], warm:[['Bici o elíptica suave','5 min'],['Sentadillas sin peso','1×15'],['Balanceos de pierna','10 por lado'],['Primer ejercicio con muy poco peso','1×12']]}
+});
+Object.assign(EXTRAS, {
+  upperA:[['pecdeck','3x12-15','','mq'], ['fly','3x12-15','','db'], ['mcurl','3x10-12','','mq'], ['curl','3x10-12','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db']],
+  upperB:[['pushdown','3x12-15','','mq'], ['triceps','3x12-15','','db'], ['facepull','3x12-15','','mq'], ['rear','3x12-15','','db'], ['ropehammer','3x12-15','','mq'], ['hammer','3x12-15','','db']],
+  legsA: [['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['adductor','3x12-15','','mq'], ['sumo','3x12-15','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db']],
+  legsB: [['abductor','3x12-15','','mq'], ['sideabd','3x12-15 /pierna','','db'], ['cablekick','3x12-15 /pierna','','mq'], ['glutekick','3x12-15 /pierna','','db'], ['legcurl','3x10-12','','mq'], ['backext','3x12-15','','any']]
+});
+const CYCLE4 = ['upperA','legsA','upperB','legsB'];
+const CHIP_LABEL = {upperA:'Sup. A', upperB:'Sup. B', legsA:'Pierna A', legsB:'Pierna B'};
 const CYCLE = ['push','pull','legs','push','pull','legs','rest'];
-const DAY_LABEL = {push:'Empuje', pull:'Tirón', legs:'Pierna', rest:'Descanso'};
+const DAY_LABEL = {push:'Empuje', pull:'Tirón', legs:'Pierna', rest:'Descanso', upperA:'Superior A', upperB:'Superior B', legsA:'Pierna A', legsB:'Pierna B'};
 const EQUIP = {db:{n:'Mancuernas', e:'💪'}, mq:{n:'Máquinas', e:'🏋️'}};
 /* Cardio extra tras las pesas en el gimnasio. Pasos: [título, explicación, segundos, tipo] */
 const CARDIO = {
@@ -469,6 +524,8 @@ const CARDIO = {
   legs:{n:'Elíptica o bici suave', e:'🏃', d:'Ritmo suave y constante (zona 2): las piernas ya han trabajado, es solo para sumar.',
     steps:[['Calienta suave','Resistencia baja.',120,'prep'],['Ritmo constante','Puedes decir frases cortas sin ahogarte. Mantén el ritmo.',660,'work'],['Vuelta a la calma','Baja la resistencia.',120,'rest']]}
 };
+
+Object.assign(CARDIO, {upperA:CARDIO.push, upperB:CARDIO.pull, legsA:CARDIO.legs, legsB:CARDIO.legs});
 
 const WARMUPS = {
   push:[['Círculos de brazos','30 s cada sentido'],['Círculos de muñecas','20 s cada sentido'],['Flexiones escapulares lentas','1×15'],['Press de banca muy ligero','1×12']],
@@ -527,6 +584,10 @@ const STRETCHES = {
     ['Respiración profunda tumbado',60,false,'Inspira 4 s, suelta 6 s.']
   ]
 };
+/* Días de la rutina de 4: tren superior = mezcla de empuje y tirón; pierna = la de pierna */
+{ const pk=(g,...ix)=>ix.map(i=>STRETCHES[g][i]);
+  STRETCHES.upperA=STRETCHES.upperB=[...pk('push',0,1,2),...pk('pull',0,2,4,6,7),...pk('push',8)];
+  STRETCHES.legsA=STRETCHES.legsB=STRETCHES.legs; }
 
 /* ---------- Kegel: 3 sesiones al día. El tiempo de aguante sube con tu rango. ---------- */
 const KEGEL_SLOTS = [{n:'Mañana',ic:'🌅'},{n:'Tarde',ic:'☀️'},{n:'Noche',ic:'🌙'}];
@@ -717,7 +778,7 @@ function newDay(date){ return {date, gate:null, sets:{}, done:false, partial:0, 
 function freshState(){
   const t=today();
   return {
-    v:2, created:t, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, gymPref:{},
+    v:2, created:t, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, cycle4:0, gymPref:{},
     streak:0, bestStreak:0, lastActive:null, farmDay:t,
     animals:[
       {id:uid(), type:'pita', name:'Lola', sat:100, starve:0, since:t},
@@ -725,7 +786,7 @@ function freshState(){
     ],
     graves:[], news:[], last:{}, best:{}, log:[], hist:{}, notes:{}, seenIntro:false, owned:[], weights:{},
     day:newDay(t),
-    settings:{rest:90, step:1, tier:'auto', notif:false, kegelTimes:['09:00','15:00','21:00'], goal:null, finisher:false, target:null, place:'home', equip:'mq'}
+    settings:{rest:90, step:1, tier:'auto', notif:false, kegelTimes:['09:00','15:00','21:00'], goal:null, finisher:false, target:null, place:'home', equip:'mq', split:null}
   };
 }
 function load(){
@@ -804,7 +865,26 @@ function currentStreak(){ const t=today(); return (S.lastActive===t||S.lastActiv
 
 /* ---------- Entreno de hoy ---------- */
 function atGym(){ return S.settings.place==='gym'; }
-function nextGate(){ return CYCLE[S.cycle%CYCLE.length]; }
+function split4(){ return S.settings.split==='ul'; }
+function nextGate(){ const C=split4()?CYCLE4:CYCLE, k=split4()?'cycle4':'cycle'; return C[(S[k]||0)%C.length]; }
+// avanza el ciclo hasta después del día hecho (si te saltas uno, sigue por el que viene detrás del que hiciste)
+function advanceCycle(gate){
+  const C=split4()?CYCLE4:CYCLE, k=split4()?'cycle4':'cycle', c=S[k]||0;
+  for(let i=0;i<C.length;i++) if(C[(c+i)%C.length]===gate){ S[k]=(c+i+1)%C.length; return; }
+}
+function setSplit(v){
+  if(S.settings.split===v){ closeModal(); return; }
+  const anyDone=!S.day.done && Object.values(S.day.sets).some(ss=>ss.some(s=>s.done));
+  if(anyDone && !confirm('Ya has marcado series de hoy. Si cambias de rutina se borrarán. ¿Cambiar?')) return;
+  S.settings.split=v;
+  if(!S.day.done && !S.day.rest){ S.day.gate=null; S.day.sets={}; S.day.sid={}; S.day.up={}; S.day.eq={}; S.day.extras=[]; S.day.start=null; S.day.pausedAt=null; S.day.pausedMs=0; stopRest(); }
+  save(); closeModal(); render();
+}
+function chooseSplit(){
+  showModal(`<h2>🗓️ Elige tu rutina</h2><p class="sub">Puedes cambiarla cuando quieras en Ajustes; tus pesos y tu historial se conservan.</p>
+    <button class="goal-opt ${S.settings.split==='ul'?'on':''}" style="width:100%;text-align:left;margin-top:10px" onclick="setSplit('ul')"><span style="font-size:28px">🍑</span><span><b>Glúteo y pierna · 4 días</b><br><span class="tiny">Superior A → Pierna A (glúteo) → Superior B → Pierna B (cuádriceps). Pierna y glúteo 2 veces por semana aunque vayas solo 3-4 días.</span></span></button>
+    <button class="goal-opt ${S.settings.split==='ppl'?'on':''}" style="width:100%;text-align:left;margin-top:8px" onclick="setSplit('ppl')"><span style="font-size:28px">⚖️</span><span><b>Equilibrada · 6 días</b><br><span class="tiny">Empuje → Tirón → Pierna, dos veces, y descanso. Ideal si entrenas 5-6 días por semana.</span></span></button>`);
+}
 // versión de gimnasio del día (o null si hoy toca en casa). Un entreno ya terminado mantiene dónde se hizo.
 function gymDay(g){ const gym = S.day.done ? !!S.day.gym : atGym(); return gym ? GYM[g]||null : null; }
 function todayGate(){ return S.day.gate || nextGate(); }
@@ -814,6 +894,7 @@ function todayExercises(){
   const g=todayGate(); if(g==='rest') return [];
   const base = gymDay(g) ? GYM[g].slots.map((sl,i)=>{ const eq=slotEquip(g,i), [id,t,note]=sl[eq];
       return Object.assign({id, t, note, eq, name:EX[id].n, d:EX[id].d}, parseT(t)); })
+    : !GATES[g].tiers ? GYM[g].slots.map(sl=>{ const [id,t,note]=sl.db; return Object.assign({id, t, note, name:EX[id].n, d:EX[id].d}, parseT(t)); })
     : GATES[g].tiers[tier()].map(([id,t,note,name])=>Object.assign({id, t, note, name:name||EX[id].n, d:EX[id].d}, parseT(t)));
   const extras=(S.day.extras||[]).map(id=>{ const [,t,note]=(EXTRAS[g]||[]).find(x=>x[0]===id)||[id,'3x12-15',''];
     return Object.assign({id, t, note, extra:true, name:EX[id].n, d:EX[id].d}, parseT(t)); });
@@ -921,7 +1002,7 @@ function finishWorkout(){
   const xp=Math.round(REWARD.workout.xp*frac), corn=Math.max(1,Math.round(REWARD.workout.corn*frac));
   const got=addCorn(corn); addXp(xp);
   S.day.done=true; S.day.partial=frac<1?frac:0; S.day.gate=entry.gate; S.day.gym=!!entry.gym;
-  S.cycle=(S.cycle+1)%CYCLE.length;
+  advanceCycle(entry.gate);
   markActive(); stopRest();
   giftIfStuck();
   save(); render();
@@ -952,7 +1033,7 @@ function retroRest(){
   else { S.streak=sy; S.lastActive=y; }
   S.bestStreak=Math.max(S.bestStreak||0, S.streak);
   // si hoy la app te proponía el descanso pendiente, pasa al siguiente entreno
-  if(!S.day.done && !S.day.rest && !S.day.gate && nextGate()==='rest') S.cycle=(S.cycle+1)%CYCLE.length;
+  if(!S.day.done && !S.day.rest && !S.day.gate && nextGate()==='rest') advanceCycle('rest');
   S.retroRest=t;
   S.hist[y]=Object.assign(S.hist[y]||{}, {rest:true});
   const got=addCorn(REWARD.rest.corn); addXp(REWARD.rest.xp);
@@ -963,7 +1044,7 @@ function confirmRest(){
   if(S.day.rest) return;
   S.day.rest=true;
   const got=addCorn(REWARD.rest.corn); addXp(REWARD.rest.xp);
-  if(todayGate()==='rest'){ S.day.gate='rest'; S.cycle=(S.cycle+1)%CYCLE.length; }
+  if(todayGate()==='rest'){ S.day.gate='rest'; advanceCycle('rest'); }
   markActive(); save(); render();
   toast(`Descanso registrado 🌾 +${got} 🌽`);
 }
@@ -1379,6 +1460,10 @@ function exCat(id){
       GYM[g].slots.forEach(sl=>{ EX_CAT[sl.db[0]]=EX_CAT[sl.db[0]]||{day:g, eq:'db'}; EX_CAT[sl.mq[0]]={day:g, eq:'mq'}; });
       EXTRAS[g].forEach(([x,,,eq])=>{ EX_CAT[x]=EX_CAT[x]||{day:g, eq:eq==='mq'?'mq':'db'}; });
     });
+    ['legsA','legsB'].forEach(g=>{
+      GYM[g].slots.forEach(sl=>['db','mq'].forEach(q=>{ EX_CAT[sl[q][0]]=EX_CAT[sl[q][0]]||{day:'legs', eq:q}; }));
+      EXTRAS[g].forEach(([x,,,eq])=>{ EX_CAT[x]=EX_CAT[x]||{day:'legs', eq:eq==='mq'?'mq':'db'}; });
+    });
   }
   return EX_CAT[id]||{day:'other', eq:'db'};
 }
@@ -1425,6 +1510,7 @@ function render(){
   bindCharts();
   if(!S.seenIntro && !document.querySelector('.modal')) showIntro();
   else if(S.seenIntro && !S.settings.goal && !document.querySelector('.modal') && !P) chooseGoal();
+  else if(S.seenIntro && S.settings.goal && !S.settings.split && !document.querySelector('.modal') && !P) chooseSplit();
 }
 
 function showIntro(){
@@ -1459,12 +1545,12 @@ function viewHome(){
 
   // --- Entreno ---
   h+=`<div class="card"><div class="seg full">${[['home','🏠 En casa'],['gym','🏢 Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div>
-    <div class="chips">${['push','pull','legs','rest'].map(k=>`<button class="chip ${g===k?'on':''} ${k===next&&g!==k?'next':''}" onclick="pickGate('${k}')" ${S.day.done?'disabled':''}><span class="ci">${k==='rest'?'🌾':GATES[k].icon}</span>${DAY_LABEL[k]}</button>`).join('')}</div>`;
+    <div class="chips" style="grid-template-columns:repeat(${split4()?5:4},1fr)">${(split4()?[...CYCLE4,'rest']:['push','pull','legs','rest']).map(k=>`<button class="chip ${g===k?'on':''} ${k===next&&g!==k?'next':''}" onclick="pickGate('${k}')" ${S.day.done?'disabled':''}><span class="ci">${k==='rest'?'🌾':GATES[k].icon}</span>${CHIP_LABEL[k]||DAY_LABEL[k]}</button>`).join('')}</div>`;
   if(g==='rest'){
     h+=`<div style="text-align:center;padding:16px 0 4px"><div style="font-size:54px">🌾</div><h2>Día de descanso</h2>
       <p class="sub">Tus músculos crecen descansando. Confirma el descanso para mantener la racha, y si te apetece haz una sesión de movilidad suave.</p></div>
       ${S.day.rest?`<div class="badge green" style="display:flex;justify-content:center;padding:10px">✓ Descanso registrado</div>`:`<button class="btn" onclick="confirmRest()">Confirmar descanso · +${REWARD.rest.corn} 🌽</button>`}
-      <p class="tiny" style="text-align:center;margin-top:10px">¿Prefieres entrenar? Elige Empuje, Tirón o Pierna arriba.</p>`;
+      <p class="tiny" style="text-align:center;margin-top:10px">¿Prefieres entrenar? Elige un entreno arriba.</p>`;
   } else {
     const G=GATES[g], GD=gymDay(g), exs=todayExercises(), t=totals();
     const doneSecs=(S.log.find(e=>e.date===S.day.date&&e.secs)||{}).secs;
@@ -1478,7 +1564,7 @@ function viewHome(){
     if(S.day.done){
       h+=`<div class="badge green" style="display:flex;justify-content:center;padding:10px;margin-top:12px;font-size:14px">✓ Entreno completado${S.day.partial?' (parcial)':''} · ¡bien hecho!</div>`;
     } else {
-      h+=`<details class="wu"><summary>🔥 Calentamiento <span class="tiny">(${GD?'7-8':'2-3'} min)</span></summary>${(GD?GD.warm:WARMUPS[g]).map(([n,t])=>`<div class="wu-item"><span>${esc(n)}</span><b style="white-space:nowrap">${esc(t)}</b></div>`).join('')}</details>`;
+      h+=`<details class="wu"><summary>🔥 Calentamiento <span class="tiny">(${GD?'7-8':'2-3'} min)</span></summary>${(GD?GD.warm:WARMUPS[g]||GYM[g].warm).map(([n,t])=>`<div class="wu-item"><span>${esc(n)}</span><b style="white-space:nowrap">${esc(t)}</b></div>`).join('')}</details>`;
     }
     exs.forEach((ex,ei)=>{
       const ss=setsFor(ei,ex), complete=ss.every(s=>s.done);
@@ -1946,7 +2032,8 @@ function viewSettings(){
     <div class="set-row"><div class="lb">Circuito quemagrasa<small>Unos 8-10 min de cardio con mancuernas tras las pesas (en casa; en el gimnasio tienes cardio extra con máquinas)</small></div><button class="switch ${S.settings.finisher?'on':''}" onclick="S.settings.finisher=!S.settings.finisher;save();render()" aria-label="Circuito quemagrasa"></button></div>
   </div>
   <div class="card"><h3>🏋️ Entreno</h3>
-    <div class="set-row"><div class="lb">Dónde entrenas<small>El orden Empuje → Tirón → Pierna es el mismo; en el gimnasio cambian los ejercicios y hay cardio extra</small></div><div class="seg">${[['home','Casa'],['gym','Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div></div>
+    <div class="set-row"><div class="lb">Rutina<small>${split4()?'🍑 Glúteo y pierna · 4 días (Superior A → Pierna A → Superior B → Pierna B)':'⚖️ Equilibrada · 6 días (Empuje → Tirón → Pierna)'}</small></div><button class="btn sec small" onclick="chooseSplit()">Cambiar</button></div>
+    <div class="set-row"><div class="lb">Dónde entrenas<small>El orden de la rutina es el mismo; en el gimnasio cambian los ejercicios y hay cardio extra</small></div><div class="seg">${[['home','Casa'],['gym','Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div></div>
     ${atGym()?`<div class="set-row"><div class="lb">Material en el gimnasio<small>Puedes cambiar cada ejercicio suelto con el botón ⇄</small></div><div class="seg">${Object.entries(EQUIP).map(([k,q])=>`<button class="${S.settings.equip===k?'on':''}" onclick="setEquip('${k}')">${q.n}</button>`).join('')}</div></div>`:''}
     <div class="set-row"><div class="lb">Descanso entre series<small>Se pone en marcha al marcar una serie</small></div>${seg('rest',[60,90,120,180],o=>o<120?o+'s':(o/60)+'m')}</div>
     <div class="set-row"><div class="lb">Salto de peso<small>Lo que suman los botones − / +</small></div>${seg('step',[0.5,1,2,2.5],o=>fmtKg(+o))}</div>

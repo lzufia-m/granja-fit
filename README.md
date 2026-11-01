@@ -8,6 +8,7 @@ App de entrenamiento con mancuernas (en casa) o en el gimnasio, basada en [Ascen
 - **Estiramientos** guiados al terminar (~10-12 min, según el día) y **Kegel** 3 veces al día.
 - **Objetivo** (bajar / mantener / subir de peso): cambia el descanso entre series, añade un circuito quemagrasa si quieres bajar, y da consejos de comida según cómo evoluciona tu peso (media de 7 días y ritmo semanal).
 - **Sobrecarga progresiva**: si en la última sesión llegaste al máximo de repeticiones en todas las series, la app te avisa de que deberías subir peso (no lo sube sola).
+- **Dos rutinas** (Ajustes → Rutina): *Equilibrada · 6 días* (Empuje → Tirón → Pierna ×2 + descanso) o *Glúteo y pierna · 4 días* (Superior A → Pierna A glúteo → Superior B → Pierna B cuádriceps), cada una con su ciclo.
 - **Extras**: cada día tiene 6 ejercicios base y una lista de extras opcionales (⭐ = el que más conviene: lo menos trabajado en la semana y ya recuperado).
 - **Recuperación muscular**: mapa del cuerpo en verde/amarillo/rojo y aviso si el entreno de hoy toca músculos que aún no se han recuperado (48 h pequeños, 72 h grandes).
 - **Pausa** del entreno (el tiempo en pausa no cuenta), **notas** por ejercicio, **récords** (y 🏆 en el calendario), **resumen semanal** cada lunes con músculos olvidados, y **borrar el historial** de un ejercicio o de una sesión suelta.
