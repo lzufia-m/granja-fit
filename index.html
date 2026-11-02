@@ -745,11 +745,20 @@ function animalArt(type, acc, size){
   return `<span style="display:block;font-size:${Math.round(size*.78)}px;line-height:${size}px;width:${size}px;text-align:center">${sp.e}</span>`;
 }
 const HEN_NAMES = ['Lola','Pepa','Turuleta','Clotilde','Rosita','Margarita','Petra','Chispa','Canela','Nube','Pipa','Paca','Remedios','Manola','Coco','Brígida','Fermina','Tula','Bimba','Pochola','Rufina','Cleo','Mostaza','Galleta'];
-const DECAY = 20;          // % de saciedad que pierden al día
+const DECAY = 15;          // % de saciedad que pierden al día
 const LAY_MIN = 40;        // saciedad mínima para poner huevos
 const STARVE_DAYS = 3;     // días a 0 % antes de morir
-const CORN_CAP = 40;       // capacidad del granero
-const REWARD = {workout:{xp:100, corn:8}, stretch:{xp:20, corn:2}, kegel:{xp:10, corn:1}, rest:{xp:20, corn:2}, finisher:{xp:15, corn:2}, cardio:{xp:15, corn:2}, weigh:{xp:5, corn:0}};
+const CORN_CAP = 60;       // capacidad del granero
+const EXTRA_CORN = 2, EXTRA_XP = 15; // por cada ejercicio extra hecho
+const EGGS_PER_CORN = 3;   // en el mercado: 3 huevos = 1 maíz
+function farmCap(){ return 6 + Math.floor(levelFromXp(S.xp).lvl/3); } // plazas del corral
+function dailyNeed(){ return S.animals.reduce((c,a)=>c+DECAY/SPECIES[a.type].feed,0); } // 🌽 que comen al día
+function dailyIncome(){ // media de los últimos 7 días (sin contar hoy si aún no ha acabado)
+  const t=today(); let sum=0, days=0;
+  for(let i=1;i<=7;i++){ const d=addDays(t,-i); if(d<S.created) break; sum+=(S.cornLog||{})[d]||0; days++; }
+  return days ? sum/days : null;
+}
+const REWARD = {workout:{xp:100, corn:10}, stretch:{xp:20, corn:3}, kegel:{xp:10, corn:1}, rest:{xp:20, corn:3}, finisher:{xp:15, corn:3}, cardio:{xp:15, corn:3}, weigh:{xp:5, corn:0}};
 
 /* ---------- Objetivo. La rutina de fuerza es la misma en los tres casos (es lo que mantiene o
    construye músculo); cambian el descanso, el cardio extra y la comida.
@@ -786,7 +795,7 @@ function newDay(date){ return {date, gate:null, sets:{}, done:false, partial:0, 
 function freshState(){
   const t=today();
   return {
-    v:2, created:t, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, cycle4:0, gymPref:{},
+    v:3, created:t, cornLog:{}, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, cycle4:0, gymPref:{},
     streak:0, bestStreak:0, lastActive:null, farmDay:t,
     animals:[
       {id:uid(), type:'pita', name:'Lola', sat:100, starve:0, since:t},
@@ -847,7 +856,15 @@ function rollover(){
 function addCorn(n){
   const before=S.corn; S.corn=Math.min(CORN_CAP, S.corn+n);
   if(S.corn-before<n) toast('El granero está lleno 🌾');
+  // lo ganado se apunta (aunque no quepa) para calcular la media diaria
+  S.cornLog=S.cornLog||{}; const t=today(); S.cornLog[t]=(S.cornLog[t]||0)+n;
+  for(const d in S.cornLog) if(d<addDays(t,-30)) delete S.cornLog[d];
   return S.corn-before;
+}
+function tradeEggs(n){
+  n=Math.min(n, Math.floor(S.eggs/EGGS_PER_CORN), CORN_CAP-S.corn);
+  if(n<=0){ toast(S.corn>=CORN_CAP?'El granero está lleno 🌾':`Hacen falta ${EGGS_PER_CORN} 🥚 por cada 🌽`); return; }
+  S.eggs-=n*EGGS_PER_CORN; S.corn+=n; save(); render(); toast(`🥚→🌽 Has cambiado ${n*EGGS_PER_CORN} huevos por ${n} de maíz`);
 }
 function addXp(n){
   const before=levelFromXp(S.xp).lvl, bt=autoTier(before);
@@ -992,7 +1009,11 @@ function finishWorkout(){
   const exs=todayExercises(), t=totals();
   if(t.done===0){ toast('Marca al menos una serie ✓'); return; }
   if(t.done<t.all && !confirm(`Llevas ${t.done} de ${t.all} series. ¿Terminar igualmente? Recibirás la parte proporcional.`)) return;
-  const frac=t.done/t.all;
+  const base=exs.map((ex,i)=>[ex,i]).filter(([ex])=>!ex.extra);
+  const bAll=base.reduce((a,[ex,i])=>a+setsFor(i,ex).length,0), bDone=base.reduce((a,[ex,i])=>a+setsFor(i,ex).filter(s=>s.done).length,0);
+  const frac=bAll?bDone/bAll:1;
+  // un extra cuenta si has hecho al menos 2 series (o todas, si tiene menos)
+  const nExtra=exs.filter((ex,i)=>ex.extra && setsFor(i,ex).filter(s=>s.done).length>=Math.min(2,ex.sets)).length;
   const entry={id:uid(), date:S.day.date, gate:todayGate(), tier:tier(), exercises:[]};
   if(gymDay(entry.gate)) entry.gym=true;
   if(S.day.start) entry.secs=Math.round(elapsedMs()/1000);
@@ -1007,7 +1028,7 @@ function finishWorkout(){
   });
   S.log.push(entry);
   const prs=(prInfo().days[entry.date]||[]).filter(id=>entry.exercises.some(x=>x.id===id));
-  const xp=Math.round(REWARD.workout.xp*frac), corn=Math.max(1,Math.round(REWARD.workout.corn*frac));
+  const xp=Math.round(REWARD.workout.xp*frac)+EXTRA_XP*nExtra, corn=Math.max(1,Math.round(REWARD.workout.corn*frac))+EXTRA_CORN*nExtra;
   const got=addCorn(corn); addXp(xp);
   S.day.done=true; S.day.partial=frac<1?frac:0; S.day.gate=entry.gate; S.day.gym=!!entry.gym;
   advanceCycle(entry.gate);
@@ -1018,7 +1039,7 @@ function finishWorkout(){
   const extraBtn = cd ? `<button class="btn warm" onclick="closeModal();startCardio()">${cd.e} Cardio extra: ${cd.n} (~${cardioMins(cd)} min)</button><div style="height:8px"></div>`
     : (S.settings.finisher&&!S.day.finisher) ? '<button class="btn warm" onclick="closeModal();startFinisher()">🔥 Circuito quemagrasa (~9 min)</button><div style="height:8px"></div>' : '';
   showModal(`<div style="text-align:center;font-size:56px">🐔🎉</div><h2 style="text-align:center">¡Entreno terminado!</h2>
-    <p class="sub" style="text-align:center">${entry.secs?`⏱ Has entrenado <b>${fmtDur(entry.secs)}</b> · `:''}+${xp} XP · +${got} 🌽 de maíz para la granja</p>
+    <p class="sub" style="text-align:center">${entry.secs?`⏱ Has entrenado <b>${fmtDur(entry.secs)}</b> · `:''}+${xp} XP · +${got} 🌽 de maíz para la granja${nExtra?` (incluye +${EXTRA_CORN*nExtra} 🌽 por ${nExtra} ${plural(nExtra,'extra','extras')})`:''}</p>
     ${prs.length?`<p class="sub" style="text-align:center">🏆 ${prs.length>1?'Nuevos récords':'Nuevo récord'}: <b>${prs.map(id=>esc(EX[id].n)).join(', ')}</b></p>`:''}
     <p class="sub" style="text-align:center">Ahora toca estirar: tus músculos te lo agradecerán.</p>
     ${extraBtn}<button class="btn ${extraBtn?'sec':''}" onclick="closeModal();startStretch()">🧘 Empezar estiramientos</button>
@@ -1392,11 +1413,13 @@ function collectAll(){ const n=S.pendingEggs.length; if(!n) return; S.eggs+=n; S
 function buy(type){
   const sp=SPECIES[type], lvl=levelFromXp(S.xp).lvl;
   if(lvl<sp.lvl){ toast(`Se desbloquea en el nivel ${sp.lvl}`); return; }
+  if(S.animals.length>=farmCap()){ toast(`El corral está lleno (${farmCap()} plazas). Ganas una plaza cada 3 niveles.`); return; }
   if(S.eggs<sp.cost){ toast(`Te faltan ${sp.cost-S.eggs} 🥚`); return; }
   const used=new Set(S.animals.map(a=>a.name));
   const sug=HEN_NAMES.find(n=>!used.has(n))||'Gallinita';
   showModal(`<div style="display:flex;justify-content:center">${animalArt(type,null,96)}</div>
-    <h2 style="text-align:center">${esc(sp.n)}</h2><p class="sub" style="text-align:center">${esc(sp.d)} Cuesta ${sp.cost} 🥚.</p>
+    <h2 style="text-align:center">${esc(sp.n)}</h2><p class="sub" style="text-align:center">${esc(sp.d)} Cuesta ${sp.cost} 🥚 y come unos ${fmtKg(Math.round(DECAY/sp.feed*10)/10)} 🌽 al día.</p>
+    ${(()=>{ const need=dailyNeed()+DECAY/sp.feed, inc=dailyIncome(); return inc!=null && need>inc ? `<div class="ex-up" style="background:var(--comb-soft);color:#B4412E;margin-bottom:10px">⚠️ Con este animal comerían ~${fmtKg(Math.round(need*10)/10)} 🌽 al día y tú ganas ~${fmtKg(Math.round(inc*10)/10)} 🌽 de media. Puede que no te llegue para todos.</div>` : ''; })()}
     <input type="text" id="nm" maxlength="20" value="${esc(sug)}" placeholder="Nombre">
     <button class="btn" onclick="doBuy('${type}')">Comprar y llevar a la granja</button><div style="height:8px"></div>
     <button class="btn ghost" onclick="closeModal()">Cancelar</button>`);
@@ -1600,9 +1623,10 @@ function viewHome(){
     if(!S.day.done){
       const avail=extrasFor(g).filter(([id])=>!(S.day.extras||[]).includes(id)), sug=suggestedExtra(g);
       if(avail.length) h+=`<details class="wu" ${(S.day.extras||[]).length?'':'open'}><summary>➕ Ejercicios extra <span class="tiny">(opcionales)</span></summary>
-        <p class="tiny" style="margin:6px 0 8px">Añade los que quieras si te queda tiempo. ⭐ = el que más le conviene hoy a tu cuerpo (lo menos trabajado esta semana y ya recuperado).</p>
+        <p class="tiny" style="margin:6px 0 8px">Añade los que quieras si te queda tiempo: cada uno da <b>+${EXTRA_CORN} 🌽</b> y +${EXTRA_XP} XP. ⭐ = el que más le conviene hoy a tu cuerpo (lo menos trabajado esta semana y ya recuperado).</p>
         <div class="exlist">${avail.sort((a,b)=>(b[0]===sug)-(a[0]===sug)).map(([id,t,,eq])=>`<button class="exb ${id===sug?'sug':''}" onclick="addExtra('${id}')">${id===sug?'⭐ ':''}${esc(EX[id].n)}<small>${eq==='mq'?'🏋️ ':eq==='db'?'💪 ':''}${t.replace('x',' × ').replace('/lado','por lado').replace('/pierna','por pierna')}</small></button>`).join('')}</div></details>`;
-      h+=`<div style="height:14px"></div><button class="btn" onclick="finishWorkout()">Terminar entrenamiento · +${REWARD.workout.corn} 🌽</button>`;
+      const nx=(S.day.extras||[]).length;
+      h+=`<div style="height:14px"></div><button class="btn" onclick="finishWorkout()">Terminar entrenamiento · +${REWARD.workout.corn+EXTRA_CORN*nx} 🌽</button>`;
     }
   }
   h+=`</div>`;
@@ -1667,7 +1691,12 @@ function viewFarm(){
     <button class="btn" onclick="feedAll()" ${S.corn<1||feedCost()===0?'disabled':''}>🌽 Dar de comer a todos</button>
     ${S.pendingEggs.length?`<button class="btn sec" style="width:auto;white-space:nowrap" onclick="collectAll()">🧺 Recoger ${S.pendingEggs.length}</button>`:''}
   </div>
-  <div class="tiny" style="text-align:center;margin-top:8px">Granero: ${S.corn}/${CORN_CAP} 🌽 · Para llenar a todos hacen falta ${feedCost()} 🌽</div></div>`;
+  <div class="tiny" style="text-align:center;margin-top:8px">Granero: ${S.corn}/${CORN_CAP} 🌽 · Para llenar a todos hacen falta ${feedCost()} 🌽</div>
+  ${S.eggs>=EGGS_PER_CORN && S.corn<CORN_CAP?`<div class="row" style="margin-top:8px;gap:8px"><button class="btn sec small" style="flex:1" onclick="tradeEggs(1)">🥚→🌽 ${EGGS_PER_CORN} huevos por 1 maíz</button>${feedCost()>S.corn?`<button class="btn sec small" style="flex:1" onclick="tradeEggs(${Math.max(1,feedCost()-S.corn)})">Lo que falta para llenarlos</button>`:''}</div>`:''}
+  </div>`;
+  { const need=dailyNeed(), inc=dailyIncome(), ok=inc==null||inc>=need;
+    h+=`<div class="card" style="padding:12px 14px"><div class="row" style="gap:10px"><span style="font-size:24px">${ok?'⚖️':'⚠️'}</span><div class="sp"><b>Comen ~${fmtKg(Math.round(need*10)/10)} 🌽 al día</b>${inc!=null?` · tú ganas ~${fmtKg(Math.round(inc*10)/10)} 🌽/día`:''}
+      <div class="tiny">${inc==null?'En unos días verás aquí si te llega con lo que ganas.':ok?'Te llega de sobra: puedes mantenerlos así.':'Comen más de lo que ganas de media: entrena un poco más, cambia huevos por maíz o no compres más por ahora.'} · Corral: ${S.animals.length}/${farmCap()} plazas</div></div></div></div>`; }
 
   h+=`<div class="sec-title">Tus animales (${S.animals.length})</div><div class="animals">`;
   S.animals.slice().sort((a,b)=>a.sat-b.sat).forEach(a=>{
@@ -1678,7 +1707,7 @@ function viewFarm(){
   });
   h+=`</div>`;
 
-  h+=`<div class="sec-title">Mercado · pagas con huevos</div><div class="shop">`;
+  h+=`<div class="sec-title">Mercado · pagas con huevos · corral ${S.animals.length}/${farmCap()}</div><div class="shop">`;
   Object.entries(SPECIES).forEach(([k,sp])=>{
     const locked=lvl<sp.lvl;
     h+=`<div class="item ${locked?'locked':''}"><span class="em" style="${locked?'filter:grayscale(1);opacity:.6':''}">${animalArt(k,null,52)}</span><div class="nm">${esc(sp.n)}</div><div class="ds">${esc(sp.d)}</div>
@@ -1697,7 +1726,9 @@ function viewFarm(){
   h+=`</div>`;
 
   h+=`<div class="card" style="margin-top:18px"><h3>📖 Cómo funciona</h3><ul class="clean sub">
-    <li>Entreno completo: +${REWARD.workout.corn} 🌽 · Estiramientos: +${REWARD.stretch.corn} 🌽 · Cada Kegel: +${REWARD.kegel.corn} 🌽 · Descanso: +${REWARD.rest.corn} 🌽</li>
+    <li>Entreno completo: +${REWARD.workout.corn} 🌽 y +${EXTRA_CORN} 🌽 por cada ejercicio extra · Estiramientos, cardio o descanso: +${REWARD.stretch.corn} 🌽 · Cada Kegel: +${REWARD.kegel.corn} 🌽</li>
+    <li>Una gallina come unos ${fmtKg(DECAY/25)} 🌽 al día; los animales grandes, más. En el mercado puedes cambiar ${EGGS_PER_CORN} 🥚 por 1 🌽.</li>
+    <li>El corral tiene ${farmCap()} plazas y ganas una más cada 3 niveles.</li>
     <li>Cada día los animales pierden un ${DECAY}% de saciedad.</li>
     <li>Las gallinas y patos con un ${LAY_MIN}% o más ponen huevos durante la noche.</li>
     <li>A 0% se quedan sin fuerzas: si pasan ${STARVE_DAYS} días así, mueren (unos ${Math.ceil(100/DECAY)+STARVE_DAYS} días sin comer desde llenos).</li>
@@ -2198,6 +2229,11 @@ function migrate(s){
   if(!s.day.sid) s.day.sid={};
   if(!s.day.extras) s.day.extras=[];
   if((s.v||1)<2){ ['legs:4','legs:5','legs:6','legs:7'].forEach(k=>delete s.gymPref[k]); s.v=2; } // pierna pasa a 6 ejercicios base
+  if(s.v<3){ // nueva economía de la granja: rescate de los animales con hambre
+    let n=0; (s.animals||[]).forEach(a=>{ if(a.sat<60||a.starve){ a.sat=Math.max(a.sat,60); a.starve=0; n++; } });
+    if(n) (s.news=s.news||[]).push(`🧑‍🌾 Hemos rehecho las cuentas de la granja (más maíz por entrenar, los animales comen menos y puedes cambiar huevos por maíz). Mientras tanto, una vecina ha dado de comer a ${n} ${n>1?'animales':'animal'}.`);
+    s.v=3;
+  }
   if(/^gym/.test(s.day.gate||'')){ s.day.gate=null; s.day.sets={}; s.day.sid={}; s.day.up={}; s.day.eq={}; } // de la versión de 3 días
   return s;
 }

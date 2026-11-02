@@ -16,7 +16,7 @@ App de entrenamiento con mancuernas (en casa) o en el gimnasio, basada en [Ascen
 - **Calendario** (en *Progreso*): cada día con su icono (entreno, descanso, estiramientos/Kegel); al tocar un día ves el entreno completo, dónde lo hiciste, cuánto duró, los músculos y los extras.
 - **Duración**: el cronómetro empieza al marcar la primera serie y para al pulsar *Terminar*.
 - **Músculos trabajados**: dibujo del cuerpo (delante y detrás) coloreado según cuánto has trabajado cada músculo, hoy o en los últimos 7 días, con el porcentaje de cada uno.
-- **Granja**: entrenar da 🌽 maíz → alimentas a tus animales → las gallinas ponen 🥚 → compras más animales. Unos 8 días sin comer y mueren. Cada raza tiene su dibujo y hay accesorios (algunos se ganan con la racha).
+- **Granja**: entrenar da 🌽 maíz → alimentas a tus animales → las gallinas ponen 🥚 → compras más animales. Unos 10 días sin comer y mueren. Los ejercicios extra dan maíz extra, el corral tiene plazas limitadas (más con el nivel), se pueden cambiar 3 huevos por 1 maíz y la granja muestra si lo que ganas cubre lo que comen. Cada raza tiene su dibujo y hay accesorios (algunos se ganan con la racha).
 
 Todo vive en `index.html` (HTML + CSS + JS, sin dependencias). Los datos se guardan en el navegador (localStorage); usa *Ajustes → Descargar copia* para hacer copias de seguridad.
 
