@@ -339,6 +339,7 @@ const EX = {
   latnarrow: {n:'Jalón con agarre estrecho', d:'Agarre neutro (palmas enfrentadas) o triángulo. Tira hacia el pecho llevando los codos hacia abajo y atrás.'},
   pecdeck:   {n:'Contractora de pecho (pec deck)', d:'Codos un poco doblados a la altura del pecho. Cierra los brazos delante apretando el pecho y abre despacio.'},
   mcalf:     {n:'Gemelos en máquina', d:'En la máquina de gemelos o en la prensa con la punta de los pies. Sube del todo, aguanta 1 s y baja estirando.'},
+  declinecrunch:{n:'Crunch en banco inclinado', d:'Pies sujetos en el banco inclinado, con la cabeza más baja que la cadera. Sube enrollando la espalda hasta la mitad, sin tirar del cuello, y baja despacio. Para más dificultad, sujeta un disco en el pecho (apunta su peso; sin disco, pon 0).'},
   mcrunch:   {n:'Crunch en máquina o polea', d:'En la máquina de abdominales, o de rodillas con la cuerda en la polea alta: enrolla el tronco llevando el pecho a la cadera.'}
 };
 
@@ -364,7 +365,7 @@ const EX_MUSCLES = {
   rdl:{hams:1,glutes:.7,lowback:.5}, sldl:{hams:1,glutes:.7,lowback:.3}, legcurl:{hams:1,calves:.3},
   hipthrust:{glutes:1,hams:.5}, hipthrustm:{glutes:1,hams:.5}, hipthrustbb:{glutes:1,hams:.5}, stepup:{glutes:1,quads:.7},
   adductor:{adductors:1}, abductor:{abductors:1,glutes:.5}, sideabd:{abductors:1,glutes:.3},
-  calf:{calves:1}, calf1:{calves:1}, mcalf:{calves:1}, dbcrunch:{abs:1,obliques:.3}, mcrunch:{abs:1,obliques:.3},
+  calf:{calves:1}, calf1:{calves:1}, mcalf:{calves:1}, dbcrunch:{abs:1,obliques:.3}, mcrunch:{abs:1,obliques:.3}, declinecrunch:{abs:1,obliques:.3},
   rotary:{obliques:1,abs:.4}, russian:{obliques:1,abs:.5}, sdip:{triceps:1,chest:.4}, benchdip:{triceps:1,chest:.3,delts:.3},
   backext:{lowback:1,glutes:.5,hams:.4}, facepull:{reardelts:1,traps:.6},
   legpresshi:{glutes:1,quads:.7,hams:.3}, glutekick:{glutes:1,hams:.3}, cablekick:{glutes:1,hams:.3}
@@ -462,9 +463,9 @@ const GYM = {
 };
 /* Extras opcionales de cada día (además de los 6 base): [id, 'series x reps', nota, material: db | mq | any] */
 const EXTRAS = {
-  push:[['sdip','3x10-12','','mq'], ['benchdip','3x10-15','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db'], ['rotary','3x12-15 /lado','Gira despacio, sin impulso.','mq'], ['russian','3x12 /lado','','db']],
+  push:[['sdip','3x10-12','','mq'], ['benchdip','3x10-15','','db'], ['declinecrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db'], ['rotary','3x12-15 /lado','Gira despacio, sin impulso.','mq'], ['russian','3x12 /lado','','db']],
   pull:[['facepull','3x12-15','','mq'], ['shrug','3x12-15','','db'], ['backext','3x12-15','','any'], ['rotary','3x12-15 /lado','Gira despacio, sin impulso.','mq'], ['russian','3x12 /lado','','db']],
-  legs:[['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['lunge','3x10 /pierna','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db'], ['backext','3x12-15','','any']]
+  legs:[['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['lunge','3x10 /pierna','','db'], ['declinecrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db'], ['backext','3x12-15','','any']]
 };
 /* ---------- Rutina de 4 días con enfoque glúteo y pierna: Empuje → Pierna A → Tirón → Pierna B.
    Pierna 2 veces por semana aunque entrenes solo 4 días. (Superior A/B se quedan definidos para el
@@ -506,13 +507,13 @@ Object.assign(GYM, {
     {db:['sumo','3x12-15','Cara interna del muslo.'], mq:['adductor','3x12-15','Cierra con control, sin que choquen las placas.']},
     {db:['hipthrust','4x8-12','Ve pesado y aprieta 1 s arriba.'], mq:['hipthrustbb','4x8-12','Ve pesado y aprieta 1 s arriba. Si la barra no te va, cambia a mancuerna con ⇄.']},
     {db:['calf','3x15-20',''], mq:['mcalf','3x12-15','']},
-    {db:['dbcrunch','3x12-15',''], mq:['mcrunch','3x12-15','']}
+    {db:['dbcrunch','3x12-15',''], mq:['declinecrunch','3x12-15','']}
   ], warm:[['Bici o elíptica suave','5 min'],['Sentadillas sin peso','1×15'],['Balanceos de pierna','10 por lado'],['Primer ejercicio con muy poco peso','1×12']]}
 });
 Object.assign(EXTRAS, {
-  upperA:[['pecdeck','3x12-15','','mq'], ['fly','3x12-15','','db'], ['mcurl','3x10-12','','mq'], ['curl','3x10-12','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db']],
+  upperA:[['pecdeck','3x12-15','','mq'], ['fly','3x12-15','','db'], ['mcurl','3x10-12','','mq'], ['curl','3x10-12','','db'], ['declinecrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db']],
   upperB:[['pushdown','3x12-15','','mq'], ['triceps','3x12-15','','db'], ['facepull','3x12-15','','mq'], ['rear','3x12-15','','db'], ['ropehammer','3x12-15','','mq'], ['hammer','3x12-15','','db']],
-  legsA: [['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['adductor','3x12-15','','mq'], ['sumo','3x12-15','','db'], ['mcrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db']],
+  legsA: [['mcalf','3x12-15','','mq'], ['calf','3x15-20','','db'], ['adductor','3x12-15','','mq'], ['sumo','3x12-15','','db'], ['declinecrunch','3x12-15','','mq'], ['dbcrunch','3x12-15','','db']],
   legsB: [['abductor','3x12-15','','mq'], ['sideabd','3x12-15 /pierna','','db'], ['cablekick','3x12-15 /pierna','','mq'], ['glutekick','3x12-15 /pierna','','db'], ['legcurl','3x10-12','','mq'], ['backext','3x12-15','','any']]
 });
 const CYCLE4 = ['push','legsA','pull','legsB'];
@@ -795,7 +796,7 @@ function newDay(date){ return {date, gate:null, sets:{}, done:false, partial:0, 
 function freshState(){
   const t=today();
   return {
-    v:3, created:t, cornLog:{}, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, cycle4:0, gymPref:{},
+    v:4, created:t, cornLog:{}, xp:0, corn:10, eggs:0, pendingEggs:[], cycle:0, cycle4:0, gymPref:{},
     streak:0, bestStreak:0, lastActive:null, farmDay:t,
     animals:[
       {id:uid(), type:'pita', name:'Lola', sat:100, starve:0, since:t},
@@ -2233,6 +2234,13 @@ function migrate(s){
     let n=0; (s.animals||[]).forEach(a=>{ if(a.sat<60||a.starve){ a.sat=Math.max(a.sat,60); a.starve=0; n++; } });
     if(n) (s.news=s.news||[]).push(`🧑‍🌾 Hemos rehecho las cuentas de la granja (más maíz por entrenar, los animales comen menos y puedes cambiar huevos por maíz). Mientras tanto, una vecina ha dado de comer a ${n} ${n>1?'animales':'animal'}.`);
     s.v=3;
+  }
+  if(s.v<4){ // el crunch con máquinas que apuntaba era en banco inclinado: se renombra en el historial
+    const R=id=>id==='mcrunch'?'declinecrunch':id;
+    (s.log||[]).forEach(e=>e.exercises.forEach(x=>{ if(x.id==='mcrunch'){ x.id='declinecrunch'; x.name='Crunch en banco inclinado'; } }));
+    ['last','best','notes'].forEach(k=>{ if(s[k]&&s[k].mcrunch!==undefined){ s[k].declinecrunch=s[k].mcrunch; delete s[k].mcrunch; } });
+    if(s.day){ s.day.extras=(s.day.extras||[]).map(R); for(const i in (s.day.sid||{})) s.day.sid[i]=R(s.day.sid[i]); }
+    s.v=4;
   }
   if(/^gym/.test(s.day.gate||'')){ s.day.gate=null; s.day.sets={}; s.day.sid={}; s.day.up={}; s.day.eq={}; } // de la versión de 3 días
   return s;
