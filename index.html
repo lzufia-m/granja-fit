@@ -174,6 +174,8 @@ table.t th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spa
 .exb small.up{color:var(--sage-dark)} .exb small.down{color:#B4412E}
 .exb.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .exb.on small{color:rgba(255,255,255,.75)}
+.exb.on{border-color:var(--sage);background:var(--sage-soft)}
+.cd .ci.two{font-size:11px;letter-spacing:-2px}
 .exb.sug{border-color:var(--straw);background:var(--straw-soft)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .pth{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--line);padding:0;border:0}
@@ -802,7 +804,7 @@ function freshState(){
       {id:uid(), type:'pita', name:'Lola', sat:100, starve:0, since:t},
       {id:uid(), type:'pita', name:'Pepa', sat:100, starve:0, since:t}
     ],
-    graves:[], news:[], last:{}, best:{}, log:[], hist:{}, notes:{}, seenIntro:false, owned:[], weights:{},
+    graves:[], news:[], last:{}, best:{}, log:[], acts:[], hist:{}, notes:{}, seenIntro:false, owned:[], weights:{},
     day:newDay(t),
     settings:{rest:90, step:1, tier:'auto', notif:false, kegelTimes:['09:00','15:00','21:00'], goal:null, finisher:false, target:null, place:'home', equip:'mq', split:null}
   };
@@ -1053,8 +1055,8 @@ function yesterdayMissing(){
   if(S.lastActive===t) return S.prevActive ? S.prevActive.date!==y : S.streak===1;
   return S.lastActive!==y;
 }
-function retroRest(){
-  if(!yesterdayMissing()) return;
+// apunta ayer como día activo en la racha (descanso o actividad olvidados)
+function creditYesterday(){
   const t=today(), y=addDays(t,-1), y2=addDays(t,-2);
   // racha hasta ayer, contando el descanso de ayer
   const base = S.lastActive===t ? (S.prevActive||{date:null, streak:0}) : {date:S.lastActive, streak:S.streak};
@@ -1062,9 +1064,14 @@ function retroRest(){
   if(S.lastActive===t){ S.streak=sy+1; S.prevActive={date:y, streak:sy}; }
   else { S.streak=sy; S.lastActive=y; }
   S.bestStreak=Math.max(S.bestStreak||0, S.streak);
+  S.retroRest=t;
+}
+function retroRest(){
+  if(!yesterdayMissing()) return;
+  const y=addDays(today(),-1);
+  creditYesterday();
   // si hoy la app te proponía el descanso pendiente, pasa al siguiente entreno
   if(!S.day.done && !S.day.rest && !S.day.gate && nextGate()==='rest') advanceCycle('rest');
-  S.retroRest=t;
   S.hist[y]=Object.assign(S.hist[y]||{}, {rest:true});
   const got=addCorn(REWARD.rest.corn); addXp(REWARD.rest.xp);
   save(); render();
@@ -1077,6 +1084,71 @@ function confirmRest(){
   if(todayGate()==='rest'){ S.day.gate='rest'; advanceCycle('rest'); }
   markActive(); save(); render();
   toast(`Descanso registrado 🌾 +${got} 🌽`);
+}
+/* ---------- Otras actividades (monte, zumba, yoga…) ----------
+   Sustituyen al entreno del día: dan maíz, XP y racha, pero la rutina no avanza.
+   m = músculos que cansa cada 30 min (para la recuperación). */
+const ACTS = {
+  hike:{e:'⛰️', n:'Monte', m:{quads:.8, glutes:.8, hams:.4, calves:.6}},
+  walk:{e:'🚶‍♀️', n:'Caminar', m:{calves:.2}},
+  run:{e:'🏃‍♀️', n:'Correr', m:{quads:.6, hams:.4, glutes:.4, calves:.8}},
+  bike:{e:'🚴‍♀️', n:'Bici / spinning', m:{quads:.8, glutes:.4, calves:.3}},
+  zumba:{e:'💃', n:'Zumba / baile', m:{quads:.3, glutes:.3, calves:.4}},
+  yoga:{e:'🧘‍♀️', n:'Yoga', m:{}},
+  pilates:{e:'🤸‍♀️', n:'Pilates', m:{abs:.6, obliques:.3, glutes:.3}},
+  swim:{e:'🏊‍♀️', n:'Natación', m:{lats:.5, delts:.5, triceps:.2}},
+  padel:{e:'🎾', n:'Pádel / tenis', m:{delts:.3, quads:.3, calves:.4}},
+  climb:{e:'🧗‍♀️', n:'Escalada', m:{lats:.8, biceps:.6, forearms:.8}},
+  ski:{e:'⛷️', n:'Esquí', m:{quads:.8, glutes:.5}},
+  other:{e:'⭐', n:'Otra', m:{}}
+};
+let AADD=null;
+function actsOn(ds){ return (S.acts||[]).filter(a=>a.date===ds); }
+function actE(a){ return (ACTS[a.type]||ACTS.other).e; }
+function actN(a){ return a.type==='other' && a.name ? a.name : (ACTS[a.type]||ACTS.other).n; }
+function actAdd(date){
+  AADD={type:AADD?.type||'hike', mins:AADD?.mins||60, date:date||today(), name:'', note:''};
+  actModal();
+}
+function actModal(){
+  const t=today();
+  showModal(`<h2>🎯 Otra actividad</h2>
+    <p class="sub">Cuenta como el entreno del día: maíz, XP y racha. Tu rutina de gimnasio no avanza: el próximo día sigue por donde ibas.</p>
+    <div class="exlist" style="margin-top:10px">${Object.entries(ACTS).map(([k,a])=>`<button class="exb ${AADD.type===k?'on':''}" onclick="AADD.type='${k}';actModal()">${a.e} ${a.n}</button>`).join('')}</div>
+    ${AADD.type==='other'?`<input type="text" placeholder="¿Qué has hecho?" value="${esc(AADD.name)}" oninput="AADD.name=this.value" style="width:100%;margin-top:10px;border:1px solid var(--line2);border-radius:12px;padding:10px;font:inherit;font-size:15px">`:''}
+    <div class="set-row"><div class="lb">Duración</div><input type="text" inputmode="numeric" value="${AADD.mins}" onfocus="this.select()" onchange="AADD.mins=parseInt(this.value)||0" style="width:64px;text-align:center"> min</div>
+    <div class="seg full">${[30,45,60,90,120,180].map(m=>`<button class="${AADD.mins===m?'on':''}" onclick="AADD.mins=${m};actModal()">${m<60?m+'′':m/60+' h'}</button>`).join('')}</div>
+    <div class="set-row"><div class="lb">Fecha</div><input type="date" value="${AADD.date}" min="${addDays(t,-7)}" max="${t}" onchange="AADD.date=this.value||today()"></div>
+    <textarea rows="2" placeholder="Nota (opcional): ruta, clase, cómo te has sentido…" oninput="AADD.note=this.value" style="width:100%;border:1px solid var(--line2);border-radius:12px;padding:10px;font:inherit;font-size:15px">${esc(AADD.note)}</textarea>
+    <div style="height:10px"></div><button class="btn" onclick="actSave()">Guardar ${(ACTS[AADD.type]||ACTS.other).e}</button>
+    <div style="height:8px"></div><button class="btn ghost" onclick="AADD=null;closeModal()">Cancelar</button>`, true);
+}
+// la primera cosa del día (sin entreno) vale como un entreno; si ya entrenaste, como un cardio extra
+function actReward(date, mins){
+  if(S.log.some(e=>e.date===date) || actsOn(date).some(a=>a.full)) return {xp:REWARD.cardio.xp, corn:REWARD.cardio.corn, full:false};
+  const k=Math.min(1, mins/40);
+  return {xp:Math.round(REWARD.workout.xp*k), corn:Math.max(REWARD.cardio.corn, Math.round(REWARD.workout.corn*k)), full:true};
+}
+function actSave(){
+  const t=today(), {type, date, note}=AADD, mins=Math.round(AADD.mins||0), name=(AADD.name||'').trim();
+  if(mins<5 || mins>720){ toast('Pon cuántos minutos (entre 5 y 720)'); return; }
+  if(date>t || date<addDays(t,-7)){ toast('Solo puedes apuntar actividades de la última semana'); return; }
+  if(type==='other' && !name){ toast('Escribe qué actividad has hecho'); return; }
+  const r=actReward(date, mins), [y,m,d]=date.split('-').map(Number);
+  const a={id:uid(), date, type, mins, ts: date===t ? Date.now() : new Date(y,m-1,d,12).getTime(), xp:r.xp, corn:r.corn, full:r.full};
+  if(type==='other') a.name=name;
+  if((note||'').trim()) a.note=note.trim();
+  (S.acts=S.acts||[]).push(a);
+  const got=addCorn(r.corn); addXp(r.xp);
+  if(date===t) markActive(); else if(date===addDays(t,-1) && yesterdayMissing()) creditYesterday();
+  AADD=null; save(); closeModal(); render();
+  toast(`${actE(a)} ${actN(a)} apuntado · +${got} 🌽 · racha ${currentStreak()}`);
+}
+function delAct(id){
+  const a=(S.acts||[]).find(x=>x.id===id); if(!a) return;
+  if(!confirm(`¿Borrar «${actN(a)}» del ${fmtDate(a.date)}? Se devuelven el maíz y la XP que te dio.`)) return;
+  S.acts=S.acts.filter(x=>x!==a); S.corn=Math.max(0, S.corn-(a.corn||0)); S.xp=Math.max(0, S.xp-(a.xp||0));
+  save(); render(); showDay(a.date);
 }
 function giftIfStuck(){
   const layers=S.animals.filter(a=>SPECIES[a.type].lay>0).length;
@@ -1559,7 +1631,9 @@ function showIntro(){
 }
 
 function viewHome(){
-  const g=todayGate(), next=nextGate();
+  const g=todayGate(), next=nextGate(), ta=actsOn(S.day.date);
+  // si hoy ya has hecho otra actividad, el entreno se esconde (salvo que quieras entrenar también)
+  const hideGym = ta.length && !S.day.done && !S.day.showGym && !Object.values(S.day.sets).some(ss=>ss.some(s=>s.done));
   let h='';
   if(S.news.length){
     h+=`<div class="card news"><div class="row"><h3>Mientras no estabas…</h3><span class="sp"></span><button class="btn ghost small" onclick="S.news=[];save();render()">OK</button></div><ul class="clean sub">${S.news.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`;
@@ -1573,13 +1647,19 @@ function viewHome(){
   h+=photoReminder();
   if(yesterdayMissing()){
     h+=`<div class="card"><div class="row"><div><h3>🌾 ¿Ayer descansaste?</h3><div class="sub">Si se te olvidó apuntarlo, hazlo ahora y no pierdes la racha.</div></div></div>
-      <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="retroRest()">Apuntar descanso de ayer · +${REWARD.rest.corn} 🌽</button><button class="btn ghost small" style="width:auto" onclick="S.retroRest=today();save();render()">No</button></div></div>`;
+      <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="retroRest()">Apuntar descanso de ayer · +${REWARD.rest.corn} 🌽</button><button class="btn ghost small" style="width:auto" onclick="S.retroRest=today();save();render()">No</button></div>
+      <div style="height:8px"></div><button class="btn sec small" onclick="actAdd(addDays(today(),-1))">🎯 No, hice otra actividad (monte, zumba…)</button></div>`;
   }
 
   // --- Entreno ---
   h+=`<div class="card"><div class="seg full">${[['home','🏠 En casa'],['gym','🏢 Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div>
     <div class="chips" style="grid-template-columns:repeat(${split4()?5:4},1fr)">${(split4()?[...CYCLE4,'rest']:['push','pull','legs','rest']).map(k=>`<button class="chip ${g===k?'on':''} ${k===next&&g!==k?'next':''}" onclick="pickGate('${k}')" ${S.day.done?'disabled':''}><span class="ci">${k==='rest'?'🌾':GATES[k].icon}</span>${CHIP_LABEL[k]||DAY_LABEL[k]}</button>`).join('')}</div>`;
-  if(g==='rest'){
+  if(ta.length) h+=`<div style="margin-top:10px">${ta.map(a=>`<div class="badge green" style="display:flex;justify-content:center;padding:10px;margin-top:6px;font-size:14px">✓ ${actE(a)} ${esc(actN(a))} · ${fmtDur(a.mins*60)}</div>`).join('')}</div>`;
+  if(!S.day.done && !hideGym) h+=`<button class="btn ghost small" style="margin-top:8px" onclick="actAdd()">🎯 Hoy hago otra cosa: monte, zumba, yoga…</button>`;
+  if(hideGym){
+    h+=`<p class="sub" style="text-align:center;margin:12px 0 4px">Hoy la actividad sustituye al gimnasio. Tu rutina sigue donde estaba: el próximo día toca <b>${next==='rest'?'🌾 Descanso':GATES[next].icon+' '+GATES[next].name}</b>.</p>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="btn sec small" style="flex:1" onclick="actAdd()">➕ Otra actividad</button><button class="btn ghost small" style="flex:1" onclick="S.day.showGym=true;save();render()">🏋️ Entrenar también</button></div>`;
+  } else if(g==='rest'){
     h+=`<div style="text-align:center;padding:16px 0 4px"><div style="font-size:54px">🌾</div><h2>Día de descanso</h2>
       <p class="sub">Tus músculos crecen descansando. Confirma el descanso para mantener la racha, y si te apetece haz una sesión de movilidad suave.</p></div>
       ${S.day.rest?`<div class="badge green" style="display:flex;justify-content:center;padding:10px">✓ Descanso registrado</div>`:`<button class="btn" onclick="confirmRest()">Confirmar descanso · +${REWARD.rest.corn} 🌽</button>`}
@@ -1633,10 +1713,10 @@ function viewHome(){
   h+=`</div>`;
 
   // --- Músculos ---
-  if(g!=='rest' || Object.keys(muscleScores(MRANGE)).length) h+=musclesCard();
+  if((g!=='rest' && !hideGym) || Object.keys(muscleScores(MRANGE)).length) h+=musclesCard();
 
   // --- Cardio extra (gimnasio) ---
-  const cd=g!=='rest' && gymDay(g) && CARDIO[g];
+  const cd=g!=='rest' && !hideGym && gymDay(g) && CARDIO[g];
   if(cd){
     h+=`<div class="card"><div class="row"><div><h3>${cd.e} Cardio extra · ${cd.n}</h3><div class="sub">Opcional, al acabar las pesas · unos ${cardioMins(cd)} min${S.settings.goal==='lose'?' · recomendado para tu objetivo':''}</div></div><span class="sp"></span>${S.day.cardio?'<span class="badge green">✓ Hecho</span>':''}</div>
       <p class="sub" style="margin:8px 0 0">${esc(cd.d)}</p>
@@ -1645,7 +1725,7 @@ function viewHome(){
   }
 
   // --- Circuito quemagrasa ---
-  if(S.settings.finisher && g!=='rest' && !gymDay(g)){
+  if(S.settings.finisher && g!=='rest' && !hideGym && !gymDay(g)){
     const fm=Math.round(finisherSteps().reduce((a,s)=>a+s.secs,0)/60);
     h+=`<div class="card"><div class="row"><div><h3>🔥 Circuito quemagrasa</h3><div class="sub">${finisherRounds()} rondas · 4 ejercicios · unos ${fm} min · al acabar las pesas</div></div><span class="sp"></span>${S.day.finisher?'<span class="badge green">✓ Hecho</span>':''}</div>
       <details class="wu"><summary>Ver ejercicios</summary>${FINISHER.map(([n])=>`<div class="wu-item"><span>${esc(n)}</span><b>30 s</b></div>`).join('')}</details>
@@ -1752,12 +1832,13 @@ function entryTime(e){ if(e.end) return e.end; const [y,m,d]=e.date.split('-').m
 function fatigueSources(withToday){
   const src=[], now=Date.now();
   S.log.forEach(e=>{ const ts=entryTime(e); if(now-ts<72*36e5 && now>=ts) e.exercises.forEach(x=>src.push([x.id, x.sets.length, ts])); });
+  (S.acts||[]).forEach(a=>{ if(now-a.ts<72*36e5 && now>=a.ts) src.push(['act:'+a.type, a.mins/30, a.ts]); });
   if(withToday && !S.day.done) todayExercises().forEach((ex,i)=>{ const n=(S.day.sets[i]||[]).filter(s=>s.done).length; if(n) src.push([S.day.sid[i]||ex.id, n, now]); });
   return src;
 }
 function recoveryAt(src, at){
   const fat={};
-  src.forEach(([id,n,ts])=>{ const m=EX_MUSCLES[id]; if(!m) return; const h=(at-ts)/36e5;
+  src.forEach(([id,n,ts])=>{ const m=EX_MUSCLES[id]||(ACTS[id.slice(4)]||{}).m; if(!m) return; const h=(at-ts)/36e5;
     for(const k in m){ const R=BIG_MUSCLES.includes(k)?72:48; if(h>=0 && h<R) fat[k]=(fat[k]||0)+m[k]*n*(1-h/R); } });
   const rec={}; for(const k in MUSCLES) rec[k]=Math.max(0, Math.round(100-10*(fat[k]||0)));
   return rec;
@@ -1847,21 +1928,22 @@ function weekStats(from, to){
   const es=S.log.filter(e=>e.date>=from && e.date<=to), sc={};
   es.forEach(e=>e.exercises.forEach(x=>{ const m=EX_MUSCLES[x.id]; if(m) for(const k in m) sc[k]=(sc[k]||0)+m[k]*x.sets.length; }));
   let rests=0; for(let d=from; d<=to; d=addDays(d,1)) if((S.hist[d]||{}).rest) rests++;
-  return { n:es.length, rests, secs:es.reduce((a,e)=>a+(e.secs||0),0),
+  const ac=(S.acts||[]).filter(a=>a.date>=from && a.date<=to);
+  return { n:es.length, rests, acts:ac.length, secs:es.reduce((a,e)=>a+(e.secs||0),0)+ac.reduce((s,a)=>s+a.mins*60,0),
     vol:es.reduce((a,e)=>a+e.exercises.reduce((b,x)=>b+x.sets.reduce((c,s)=>c+s.kg*s.reps,0),0),0),
     sets:es.reduce((a,e)=>a+e.exercises.reduce((b,x)=>b+x.sets.length,0),0), sc };
 }
 function weekCard(dismiss){
   const mon=mondayOf(today()), from=addDays(mon,-7), to=addDays(mon,-1);
   const a=weekStats(from,to), b=weekStats(addDays(mon,-14), addDays(mon,-8));
-  if(!a.n && !a.rests) return '';
+  if(!a.n && !a.rests && !a.acts) return '';
   const pct=(x,y)=>y>0?Math.round(100*(x-y)/y):null;
   const p=pct(a.vol,b.vol), missing=Object.keys(MUSCLES).filter(k=>!a.sc[k]).map(k=>MUSCLES[k].n);
   const prs=Object.entries(prInfo().days).filter(([d])=>d>=from && d<=to).reduce((s,[,v])=>s+v.length,0);
   return `<div class="card news"><div class="row"><h3>📊 Tu semana pasada</h3><span class="sp"></span><span class="tiny">${fmtDate(from)} – ${fmtDate(to)}</span></div>
     <div class="tiles" style="margin-top:10px">
-      <div class="tile"><div class="v">${a.n}</div><div class="l">${plural(a.n,'entreno','entrenos')}${b.n?` (antes ${b.n})`:''}</div></div>
-      <div class="tile"><div class="v">${a.secs?fmtDur(a.secs):'—'}</div><div class="l">entrenando</div></div>
+      <div class="tile"><div class="v">${a.n}</div><div class="l">${plural(a.n,'entreno','entrenos')}${b.n?` (antes ${b.n})`:''}${a.acts?` + ${a.acts} ${plural(a.acts,'actividad','actividades')}`:''}</div></div>
+      <div class="tile"><div class="v">${a.secs?fmtDur(a.secs):'—'}</div><div class="l">${a.acts?'en movimiento':'entrenando'}</div></div>
       <div class="tile"><div class="v">${Math.round(a.vol).toLocaleString('es-ES')} kg</div><div class="l">levantados${p!=null?` · <b style="color:${p>=0?'var(--sage-dark)':'#B4412E'}">${p>0?'+':''}${p} %</b>`:''}</div></div>
       <div class="tile"><div class="v">${prs?'🏆 '+prs:a.sets}</div><div class="l">${prs?plural(prs,'récord','récords'):'series'}</div></div></div>
     ${missing.length && a.n?`<p class="sub" style="margin:10px 0 0">⚠️ No trabajaste: <b>${missing.join(', ')}</b>.</p>`:a.n?`<p class="sub" style="margin:10px 0 0">✅ Trabajaste todos los músculos.</p>`:''}
@@ -1997,25 +2079,28 @@ function calendarCard(){
   const t=today(), ym=CAL||t.slice(0,7), [y,m]=ym.split('-').map(Number);
   const startDow=(new Date(y,m-1,1).getDay()+6)%7, ndays=new Date(y,m,0).getDate();
   const title=cap(new Date(y,m-1,1).toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
-  let cells='', nW=0, nR=0, secs=0; const prd=prInfo().days;
+  let cells='', nW=0, nR=0, nA=0, secs=0; const prd=prInfo().days;
   for(let i=0;i<startDow;i++) cells+='<span></span>';
   for(let d=1; d<=ndays; d++){
-    const ds=ym+'-'+String(d).padStart(2,'0'), ws=S.log.filter(e=>e.date===ds), ex=dayExtras(ds), fut=ds>t;
-    const icon = ws.length ? (GATES[ws[0].gate]||{icon:'🏋️'}).icon : dayInProgress(ds) ? '⏳' : ex.rest ? '🌾' : (ex.stretch||ex.cardio||ex.kegel) ? '✨' : '';
-    if(ws.length) nW++; else if(ex.rest) nR++;
+    const ds=ym+'-'+String(d).padStart(2,'0'), ws=S.log.filter(e=>e.date===ds), as=actsOn(ds), ex=dayExtras(ds), fut=ds>t;
+    const ics=[...ws.map(e=>(GATES[e.gate]||{icon:'🏋️'}).icon), ...as.map(actE)].slice(0,2);
+    const icon = ics.length ? ics.join('') : dayInProgress(ds) ? '⏳' : ex.rest ? '🌾' : (ex.stretch||ex.cardio||ex.kegel) ? '✨' : '';
+    if(ws.length) nW++; else if(ex.rest && !as.length) nR++;
+    nA+=as.length; as.forEach(a=>secs+=a.mins*60);
     ws.forEach(e=>secs+=e.secs||0);
-    cells+=`<button class="cd ${ws.length?'w':ex.rest?'r':''} ${ds===t?'today':''} ${fut?'f':''}" ${fut?'disabled':`onclick="showDay('${ds}')"`}>${prd[ds]?'<span class="pr">🏆</span>':''}${d}<span class="ci">${icon}</span></button>`;
+    cells+=`<button class="cd ${ws.length||as.length?'w':ex.rest?'r':''} ${ds===t?'today':''} ${fut?'f':''}" ${fut?'disabled':`onclick="showDay('${ds}')"`}>${prd[ds]?'<span class="pr">🏆</span>':''}${d}<span class="ci ${ics.length>1?'two':''}">${icon}</span></button>`;
   }
   return `<div class="card"><div class="row"><button class="btn ghost small" onclick="calMove(-1)" aria-label="Mes anterior">‹</button>
       <h3 class="sp" style="text-align:center">📅 ${title}</h3>
       <button class="btn ghost small" onclick="calMove(1)" aria-label="Mes siguiente" ${ym>=t.slice(0,7)?'disabled':''}>›</button></div>
     <div class="cal" style="margin-top:10px">${['L','M','X','J','V','S','D'].map(d=>`<span class="dw">${d}</span>`).join('')}${cells}</div>
-    <div class="tiny" style="text-align:center;margin-top:10px">${nW} ${plural(nW,'entreno','entrenos')} · ${nR} ${plural(nR,'descanso','descansos')}${secs?' · ⏱ '+fmtDur(secs)+' entrenando':''} · toca un día para verlo</div></div>`;
+    <div class="tiny" style="text-align:center;margin-top:10px">${nW} ${plural(nW,'entreno','entrenos')}${nA?` · ${nA} ${plural(nA,'actividad','actividades')}`:''} · ${nR} ${plural(nR,'descanso','descansos')}${secs?' · ⏱ '+fmtDur(secs)+(nA?' en movimiento':' entrenando'):''} · toca un día para verlo</div></div>`;
 }
 function showDay(ds){
-  const ws=S.log.filter(e=>e.date===ds), ex=dayExtras(ds);
+  const ws=S.log.filter(e=>e.date===ds), as=actsOn(ds), ex=dayExtras(ds);
   const [y,m,dd]=ds.split('-').map(Number);
   let h=`<h2>${cap(new Date(y,m-1,dd).toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'}))}</h2>`;
+  as.forEach(a=>{ h+=`<div class="hist"><div class="row" style="gap:6px"><b>${actE(a)} ${esc(actN(a))}</b><span class="badge green">⏱ ${fmtDur(a.mins*60)}</span><span class="sp"></span><button class="btn ghost small" style="width:auto" onclick="delAct('${a.id}')" aria-label="Borrar actividad">🗑</button></div>${a.note?`<div class="tiny" style="margin-top:4px">📝 ${esc(a.note)}</div>`:''}</div>`; });
   if(ws.length){
     const sc={}; ws.forEach(e=>e.exercises.forEach(x=>{ const mm=EX_MUSCLES[x.id]; if(mm) for(const k in mm) sc[k]=(sc[k]||0)+mm[k]*x.sets.length; }));
     const tot=Object.values(sc).reduce((a,b)=>a+b,0), mx=Math.max(1,...Object.values(sc));
@@ -2035,7 +2120,8 @@ function showDay(ds){
   const nph=(PHOTOS||[]).filter(p=>p.date===ds).length;
   const extras=[nph&&`📸 ${nph} ${plural(nph,'foto','fotos')}`, ex.rest&&'🌾 Descanso', ex.stretch&&'🧘 Estiramientos', ex.cardio&&'🏃 Cardio extra', ex.finisher&&'🔥 Circuito quemagrasa', ex.kegel&&`✨ Kegel ${ex.kegel}/3`].filter(Boolean);
   if(extras.length) h+=`<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:12px">${extras.map(x=>`<span class="badge green">${x}</span>`).join('')}</div>`;
-  if(!ws.length && !extras.length && !dayInProgress(ds)) h+=`<p class="sub">No hay nada apuntado este día.</p>`;
+  if(!ws.length && !as.length && !extras.length && !dayInProgress(ds)) h+=`<p class="sub">No hay nada apuntado este día.</p>`;
+  if(ds>=addDays(today(),-7)) h+=`<div style="height:10px"></div><button class="btn sec small" onclick="actAdd('${ds}')">🎯 Apuntar actividad este día</button>`;
   showModal(h+`<div style="height:14px"></div><button class="btn" onclick="closeModal()">Cerrar</button>`);
 }
 function tickClock(){
