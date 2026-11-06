@@ -1113,7 +1113,7 @@ function actAdd(date){
 function actModal(){
   const t=today();
   showModal(`<h2>🎯 Otra actividad</h2>
-    <p class="sub">Cuenta como el entreno del día: maíz, XP y racha. Tu rutina de gimnasio no avanza: el próximo día sigue por donde ibas.</p>
+    <p class="sub">En vez del gimnasio o además: da maíz, XP y racha, y si ese día también entrenas, sumas el maíz de las dos cosas. Tu rutina de gimnasio no avanza: el próximo día sigue por donde ibas.</p>
     <div class="exlist" style="margin-top:10px">${Object.entries(ACTS).map(([k,a])=>`<button class="exb ${AADD.type===k?'on':''}" onclick="AADD.type='${k}';actModal()">${a.e} ${a.n}</button>`).join('')}</div>
     ${AADD.type==='other'?`<input type="text" placeholder="¿Qué has hecho?" value="${esc(AADD.name)}" oninput="AADD.name=this.value" style="width:100%;margin-top:10px;border:1px solid var(--line2);border-radius:12px;padding:10px;font:inherit;font-size:15px">`:''}
     <div class="set-row"><div class="lb">Duración</div><input type="text" inputmode="numeric" value="${AADD.mins}" onfocus="this.select()" onchange="AADD.mins=parseInt(this.value)||0" style="width:64px;text-align:center"> min</div>
@@ -1123,9 +1123,9 @@ function actModal(){
     <div style="height:10px"></div><button class="btn" onclick="actSave()">Guardar ${(ACTS[AADD.type]||ACTS.other).e}</button>
     <div style="height:8px"></div><button class="btn ghost" onclick="AADD=null;closeModal()">Cancelar</button>`, true);
 }
-// la primera cosa del día (sin entreno) vale como un entreno; si ya entrenaste, como un cardio extra
+// la primera actividad del día da su maíz completo (también si ese día vas al gimnasio); las siguientes, como un cardio
 function actReward(date, mins){
-  if(S.log.some(e=>e.date===date) || actsOn(date).some(a=>a.full)) return {xp:REWARD.cardio.xp, corn:REWARD.cardio.corn, full:false};
+  if(actsOn(date).some(a=>a.full)) return {xp:REWARD.cardio.xp, corn:REWARD.cardio.corn, full:false};
   const k=Math.min(1, mins/40);
   return {xp:Math.round(REWARD.workout.xp*k), corn:Math.max(REWARD.cardio.corn, Math.round(REWARD.workout.corn*k)), full:true};
 }
@@ -1632,8 +1632,6 @@ function showIntro(){
 
 function viewHome(){
   const g=todayGate(), next=nextGate(), ta=actsOn(S.day.date);
-  // si hoy ya has hecho otra actividad, el entreno se esconde (salvo que quieras entrenar también)
-  const hideGym = ta.length && !S.day.done && !S.day.showGym && !Object.values(S.day.sets).some(ss=>ss.some(s=>s.done));
   let h='';
   if(S.news.length){
     h+=`<div class="card news"><div class="row"><h3>Mientras no estabas…</h3><span class="sp"></span><button class="btn ghost small" onclick="S.news=[];save();render()">OK</button></div><ul class="clean sub">${S.news.map(n=>`<li>${esc(n)}</li>`).join('')}</ul></div>`;
@@ -1655,11 +1653,10 @@ function viewHome(){
   h+=`<div class="card"><div class="seg full">${[['home','🏠 En casa'],['gym','🏢 Gimnasio']].map(([k,l])=>`<button class="${S.settings.place===k?'on':''}" onclick="setPlace('${k}')">${l}</button>`).join('')}</div>
     <div class="chips" style="grid-template-columns:repeat(${split4()?5:4},1fr)">${(split4()?[...CYCLE4,'rest']:['push','pull','legs','rest']).map(k=>`<button class="chip ${g===k?'on':''} ${k===next&&g!==k?'next':''}" onclick="pickGate('${k}')" ${S.day.done?'disabled':''}><span class="ci">${k==='rest'?'🌾':GATES[k].icon}</span>${CHIP_LABEL[k]||DAY_LABEL[k]}</button>`).join('')}</div>`;
   if(ta.length) h+=`<div style="margin-top:10px">${ta.map(a=>`<div class="badge green" style="display:flex;justify-content:center;padding:10px;margin-top:6px;font-size:14px">✓ ${actE(a)} ${esc(actN(a))} · ${fmtDur(a.mins*60)}</div>`).join('')}</div>`;
-  if(!S.day.done && !hideGym) h+=`<button class="btn ghost small" style="margin-top:8px" onclick="actAdd()">🎯 Hoy hago otra cosa: monte, zumba, yoga…</button>`;
-  if(hideGym){
-    h+=`<p class="sub" style="text-align:center;margin:12px 0 4px">Hoy la actividad sustituye al gimnasio. Tu rutina sigue donde estaba: el próximo día toca <b>${next==='rest'?'🌾 Descanso':GATES[next].icon+' '+GATES[next].name}</b>.</p>
-      <div class="row" style="gap:8px;margin-top:10px"><button class="btn sec small" style="flex:1" onclick="actAdd()">➕ Otra actividad</button><button class="btn ghost small" style="flex:1" onclick="S.day.showGym=true;save();render()">🏋️ Entrenar también</button></div>`;
-  } else if(g==='rest'){
+  h+=`<button class="btn ghost small" style="margin-top:8px" onclick="actAdd()">🎯 ${ta.length?'Añadir otra actividad':S.day.done?'Añadir actividad: monte, zumba, yoga…':'Otra actividad (en vez de o además del gimnasio)'}</button>`;
+  if(ta.length && !S.day.done && !Object.values(S.day.sets).some(ss=>ss.some(s=>s.done)))
+    h+=`<p class="tiny" style="text-align:center;margin:8px 0 0">Si hoy la actividad sustituye al gimnasio, ya está: tu rutina sigue donde estaba. Si entrenas también, ganas el maíz de las dos cosas.</p>`;
+  if(g==='rest'){
     h+=`<div style="text-align:center;padding:16px 0 4px"><div style="font-size:54px">🌾</div><h2>Día de descanso</h2>
       <p class="sub">Tus músculos crecen descansando. Confirma el descanso para mantener la racha, y si te apetece haz una sesión de movilidad suave.</p></div>
       ${S.day.rest?`<div class="badge green" style="display:flex;justify-content:center;padding:10px">✓ Descanso registrado</div>`:`<button class="btn" onclick="confirmRest()">Confirmar descanso · +${REWARD.rest.corn} 🌽</button>`}
@@ -1713,10 +1710,10 @@ function viewHome(){
   h+=`</div>`;
 
   // --- Músculos ---
-  if((g!=='rest' && !hideGym) || Object.keys(muscleScores(MRANGE)).length) h+=musclesCard();
+  if(g!=='rest' || Object.keys(muscleScores(MRANGE)).length) h+=musclesCard();
 
   // --- Cardio extra (gimnasio) ---
-  const cd=g!=='rest' && !hideGym && gymDay(g) && CARDIO[g];
+  const cd=g!=='rest' && gymDay(g) && CARDIO[g];
   if(cd){
     h+=`<div class="card"><div class="row"><div><h3>${cd.e} Cardio extra · ${cd.n}</h3><div class="sub">Opcional, al acabar las pesas · unos ${cardioMins(cd)} min${S.settings.goal==='lose'?' · recomendado para tu objetivo':''}</div></div><span class="sp"></span>${S.day.cardio?'<span class="badge green">✓ Hecho</span>':''}</div>
       <p class="sub" style="margin:8px 0 0">${esc(cd.d)}</p>
@@ -1725,7 +1722,7 @@ function viewHome(){
   }
 
   // --- Circuito quemagrasa ---
-  if(S.settings.finisher && g!=='rest' && !hideGym && !gymDay(g)){
+  if(S.settings.finisher && g!=='rest' && !gymDay(g)){
     const fm=Math.round(finisherSteps().reduce((a,s)=>a+s.secs,0)/60);
     h+=`<div class="card"><div class="row"><div><h3>🔥 Circuito quemagrasa</h3><div class="sub">${finisherRounds()} rondas · 4 ejercicios · unos ${fm} min · al acabar las pesas</div></div><span class="sp"></span>${S.day.finisher?'<span class="badge green">✓ Hecho</span>':''}</div>
       <details class="wu"><summary>Ver ejercicios</summary>${FINISHER.map(([n])=>`<div class="wu-item"><span>${esc(n)}</span><b>30 s</b></div>`).join('')}</details>
