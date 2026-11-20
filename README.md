@@ -20,6 +20,10 @@ App de entrenamiento con mancuernas (en casa) o en el gimnasio, basada en [Ascen
 - **Retos de la semana** (en *Hoy*): cada lunes, 3 retos (siempre los 2 días de pierna + 2 que cambian: extras de glúteo, estirar, actividad, récord…). Cada uno da 🥚; completar los 3 da una ⭐, y las estrellas desbloquean accesorios (pajarita, diadema, capa).
 - **Estancamiento y descarga**: si un ejercicio lleva 3 sesiones sin mejorar (ni total ni peso máximo), aviso en el ejercicio. Tras 7 semanas seguidas entrenando (o 4 con varios ejercicios estancados) propone una semana de descarga: una serie menos y −10 % de peso, puestos solos.
 - **Copia de seguridad**: recordatorio semanal en *Hoy* para guardar la copia en Drive, correo o Archivos (menú de compartir del móvil); en Ajustes se ve la fecha de la última.
+- **Glúteo esta semana** (en *Hoy*): series de glúteo y de glúteo medio de la semana frente a la zona recomendada (10-20 y 6-12; los ejercicios que lo trabajan a medias cuentan media serie), con las semanas anteriores.
+- **Vídeo** ▶️ en cada ejercicio: abre la búsqueda en YouTube de su técnica.
+- **Resumen del mes**: imagen para compartir o guardar (entrenos, días activos, tiempo, kilos, series de glúteo, récords y tu gallina). Aviso los 7 primeros días de cada mes y botón en el calendario.
+- **Ciclo menstrual** (opcional, en Ajustes): fase del día con consejo, próxima regla, regla en el calendario, y sin aviso de estancamiento por los días de antes y durante la regla.
 - **Granja**: entrenar da 🌽 maíz → alimentas a tus animales → las gallinas ponen 🥚 → compras más animales. Unos 10 días sin comer y mueren. Los ejercicios extra dan maíz extra, el corral tiene plazas limitadas (más con el nivel), se pueden cambiar 3 huevos por 1 maíz y la granja muestra si lo que ganas cubre lo que comen. Cada raza tiene su dibujo y hay accesorios (algunos se ganan con la racha).
 
 Todo vive en `index.html` (HTML + CSS + JS, sin dependencias). Los datos se guardan en el navegador (localStorage); usa *Ajustes → Descargar copia* para hacer copias de seguridad.

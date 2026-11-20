@@ -174,7 +174,12 @@ table.t th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spa
 .exb small.up{color:var(--sage-dark)} .exb small.down{color:#B4412E}
 .exb.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .exb.on small{color:rgba(255,255,255,.75)}
-.exb.on{border-color:var(--sage);background:var(--sage-soft)}
+.gbar{position:relative;height:10px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
+.gbar .zone{position:absolute;top:0;bottom:0;background:#D6EADF}
+.gbar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;opacity:.9}
+a.info-btn{display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px}
+.cd .pd{position:absolute;top:3px;left:3px;width:6px;height:6px;border-radius:50%;background:#E0638F}
+.exb.aon{border-color:var(--sage);background:var(--sage-soft)}
 .cd .ci.two{font-size:11px;letter-spacing:-2px}
 .exb.sug{border-color:var(--straw);background:var(--straw-soft)}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -320,7 +325,7 @@ const EX = {
   legcurl:   {n:'Curl femoral en máquina', d:'Tumbado o sentado. Lleva los talones hacia el culo, aguanta 1 s y vuelve despacio sin soltar del todo.'},
   hipthrustbb:{n:'Hip thrust con barra', d:'Espalda alta apoyada en el banco, barra sobre la cadera con una almohadilla. Pies a la anchura de la cadera. Sube apretando glúteos hasta quedar recta, barbilla al pecho, y baja despacio. Apunta el peso total (barra + discos).'},
   stepup:    {n:'Subida al banco con mancuernas', d:'Un pie entero sobre un banco o cajón, mancuernas en las manos. Sube empujando con el talón de esa pierna (sin impulsarte con la de abajo) y baja despacio.'},
-  smithsq:   {n:'Sentadilla en Smith (glúteo)', d:'Barra apoyada en la espalda alta. Pies un paso por delante de la barra, algo más abiertos que la cadera y con las puntas un poco hacia fuera. Baja lento llevando la cadera atrás hasta que el muslo quede paralelo al suelo o más abajo, y sube empujando con los talones. Con los pies adelantados y bajando profundo trabaja más el glúteo (sobre todo la parte baja) y menos la rodilla.'},
+  smithsq:   {n:'Sentadilla en Smith (glúteo)', yt:'sentadilla en smith pies adelantados glúteo', d:'Barra apoyada en la espalda alta. Pies un paso por delante de la barra, algo más abiertos que la cadera y con las puntas un poco hacia fuera. Baja lento llevando la cadera atrás hasta que el muslo quede paralelo al suelo o más abajo, y sube empujando con los talones. Con los pies adelantados y bajando profundo trabaja más el glúteo (sobre todo la parte baja) y menos la rodilla.'},
   cableabd:  {n:'Abducción de pie en polea', d:'Tobillera en la polea baja, en el tobillo de la pierna más lejana a la máquina. De pie y agarrado, lleva la pierna hacia fuera y un poco atrás sin inclinar el tronco, aguanta 1 s y vuelve despacio. Trabaja el glúteo medio (la parte de arriba y del lado).'},
   clam:      {n:'Almeja (clamshell)', d:'Tumbado de lado, rodillas dobladas y pies juntos. Sin separar los pies, abre la rodilla de arriba como una almeja, aguanta 1 s y baja lento. Para más dificultad, apoya una mancuerna ligera sobre el muslo. Trabaja el glúteo medio.'},
   bridge:    {n:'Puente de glúteo con mancuerna', d:'Tumbado boca arriba en el suelo, rodillas dobladas y pies cerca del culo. Mancuerna sobre la cadera. Sube la cadera apretando glúteos, aguanta 1 s arriba y baja lento sin tocar el suelo.'},
@@ -814,9 +819,9 @@ function freshState(){
       {id:uid(), type:'pita', name:'Lola', sat:100, starve:0, since:t},
       {id:uid(), type:'pita', name:'Pepa', sat:100, starve:0, since:t}
     ],
-    graves:[], news:[], last:{}, best:{}, log:[], acts:[], hist:{}, notes:{}, seenIntro:false, owned:[], weights:{},
+    graves:[], news:[], last:{}, best:{}, log:[], acts:[], periods:[], hist:{}, notes:{}, seenIntro:false, owned:[], weights:{},
     day:newDay(t),
-    settings:{rest:90, step:1, tier:'auto', notif:false, kegelTimes:['09:00','15:00','21:00'], goal:null, finisher:false, target:null, place:'home', equip:'mq', split:null}
+    settings:{rest:90, step:1, tier:'auto', notif:false, kegelTimes:['09:00','15:00','21:00'], goal:null, finisher:false, target:null, place:'home', equip:'mq', split:null, cycle:false}
   };
 }
 function load(){
@@ -1141,7 +1146,7 @@ function actModal(){
   const t=today();
   showModal(`<h2>🎯 Otra actividad</h2>
     <p class="sub">En vez del gimnasio o además: da maíz, XP y racha, y si ese día también entrenas, sumas el maíz de las dos cosas. Tu rutina de gimnasio no avanza: el próximo día sigue por donde ibas.</p>
-    <div class="exlist" style="margin-top:10px">${Object.entries(ACTS).map(([k,a])=>`<button class="exb ${AADD.type===k?'on':''}" onclick="AADD.type='${k}';actModal()">${a.e} ${a.n}</button>`).join('')}</div>
+    <div class="exlist" style="margin-top:10px">${Object.entries(ACTS).map(([k,a])=>`<button class="exb ${AADD.type===k?'aon':''}" onclick="AADD.type='${k}';actModal()">${a.e} ${a.n}</button>`).join('')}</div>
     ${AADD.type==='other'?`<input type="text" placeholder="¿Qué has hecho?" value="${esc(AADD.name)}" oninput="AADD.name=this.value" style="width:100%;margin-top:10px;border:1px solid var(--line2);border-radius:12px;padding:10px;font:inherit;font-size:15px">`:''}
     <div class="set-row"><div class="lb">Duración</div><input type="text" inputmode="numeric" value="${AADD.mins}" onfocus="this.select()" onchange="AADD.mins=parseInt(this.value)||0" style="width:64px;text-align:center"> min</div>
     <div class="seg full">${[30,45,60,90,120,180].map(m=>`<button class="${AADD.mins===m?'on':''}" onclick="AADD.mins=${m};actModal()">${m<60?m+'′':m/60+' h'}</button>`).join('')}</div>
@@ -1671,8 +1676,10 @@ function viewHome(){
 
   if(S.weekSeen!==mondayOf(today())) h+=weekCard(true);
   h+=photoReminder();
+  h+=monthCard();
   h+=backupReminder();
   h+=deloadCard();
+  h+=cycleCard();
   if(yesterdayMissing()){
     h+=`<div class="card"><div class="row"><div><h3>🌾 ¿Ayer descansaste?</h3><div class="sub">Si se te olvidó apuntarlo, hazlo ahora y no pierdes la racha.</div></div></div>
       <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="retroRest()">Apuntar descanso de ayer · +${REWARD.rest.corn} 🌽</button><button class="btn ghost small" style="width:auto" onclick="S.retroRest=today();save();render()">No</button></div>
@@ -1719,9 +1726,9 @@ function viewHome(){
           <div class="ex-meta">${ex.eq?EQUIP[ex.eq].e+' ':''}${ex.sets} series × ${reps} reps${per}${ex.note?' · '+esc(ex.note):''}</div>
           ${ex.eq&&!slotStarted(ei)?`<button class="swap" onclick="swapEx(${ei})">⇄ Hacer con ${ex.eq==='db'?'máquina':'mancuernas'}</button>`:''}
           ${S.day.up[ei]&&!S.day.done?`<div class="ex-up">⬆️ La última vez llegaste al máximo de repeticiones en todas las series: deberías subir el peso. Súbelo tú con + si te ves con fuerza.</div>`:''}
-          ${!S.day.done && !ex.extra && !deloadOn(S.day.date) && !S.day.up[ei] && stalled(ex.id)?`<div class="ex-up" style="background:#F3E6F0;color:#7A3B5E">📉 Llevas 3 sesiones sin mejorar aquí. Prueba a bajar un 10 % el peso y apurar las repeticiones${ex.eq?', o cámbialo por su variante con ⇄':''}. Si te pasa en varios, quizá toca una semana de descarga.</div>`:''}
+          ${!S.day.done && !ex.extra && !deloadOn(S.day.date) && !lowDay(S.day.date) && !S.day.up[ei] && stalled(ex.id)?`<div class="ex-up" style="background:#F3E6F0;color:#7A3B5E">📉 Llevas 3 sesiones sin mejorar aquí. Prueba a bajar un 10 % el peso y apurar las repeticiones${ex.eq?', o cámbialo por su variante con ⇄':''}. Si te pasa en varios, quizá toca una semana de descarga.</div>`:''}
           ${last?`<div class="ex-last">Última vez: ${last.map(s=>fmtKg(s.kg)+'×'+s.reps).join(' · ')}${best?` · 🏆 ${fmtKg(best)} kg`:''}</div>`:`<div class="ex-last">Primera vez: elige un peso con el que llegues justo al rango de repeticiones.</div>`}</div>
-          <div style="display:flex;flex-direction:column;gap:6px"><button class="info-btn" onclick="toggleInfo(${ei})" aria-label="Cómo se hace">?</button><button class="info-btn" onclick="noteEdit('${ex.id}')" aria-label="Nota">📝</button>${ex.extra&&!slotStarted(ei)?`<button class="info-btn" onclick="removeExtra(${ei})" aria-label="Quitar extra">✕</button>`:''}</div></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><button class="info-btn" onclick="toggleInfo(${ei})" aria-label="Cómo se hace">?</button><a class="info-btn" href="${ytUrl(ex.id)}" target="_blank" rel="noopener" aria-label="Ver vídeo">▶️</a><button class="info-btn" onclick="noteEdit('${ex.id}')" aria-label="Nota">📝</button>${ex.extra&&!slotStarted(ei)?`<button class="info-btn" onclick="removeExtra(${ei})" aria-label="Quitar extra">✕</button>`:''}</div></div>
         ${S.notes[ex.id]?`<div class="ex-note">📝 ${esc(S.notes[ex.id])}</div>`:''}
         ${S.day.openInfo[ei]?`<div class="ex-desc">${esc(ex.d)}</div>`:''}
         <div class="sets"><div class="set-head"><span>#</span><span>kg</span><span>reps</span><span>hecho</span></div>
@@ -1743,6 +1750,7 @@ function viewHome(){
   h+=`</div>`;
 
   h+=chalCard();
+  h+=gluteCard();
 
   // --- Músculos ---
   if(g!=='rest' || Object.keys(muscleScores(MRANGE)).length) h+=musclesCard();
@@ -1917,7 +1925,7 @@ function roundStep(k){ const st=+S.settings.step||1; return Math.round(Math.roun
 function deloadOn(ds){ const d=S.deload; return !!d && ds>=d.from && ds<=d.to; }
 // estancado = las 3 últimas sesiones no superan lo mejor de antes ni en total ni en peso máximo (sin contar descargas)
 function stalled(id){
-  const ss=S.log.filter(e=>!e.deload).sort((a,b)=>a.date.localeCompare(b.date)).map(e=>e.exercises.find(x=>x.id===id)).filter(Boolean);
+  const ss=S.log.filter(e=>!e.deload && !lowDay(e.date)).sort((a,b)=>a.date.localeCompare(b.date)).map(e=>e.exercises.find(x=>x.id===id)).filter(Boolean);
   if(ss.length<4) return false;
   const bw=ss.every(x=>x.sets.every(q=>!q.kg));
   const val=x=>({v:x.sets.reduce((a,q)=>a+(bw?q.reps:q.kg*q.reps),0), m:Math.max(...x.sets.map(q=>q.kg))});
@@ -2013,6 +2021,144 @@ function backupReminder(){
   return `<div class="card"><h3>💾 Guarda una copia de tus datos</h3>
     <p class="sub" style="margin:4px 0 0">${S.backupAt?`La última fue hace ${daysBetween(S.backupAt,t)} días.`:'Aún no has guardado ninguna.'} Todo está solo en este móvil: si lo cambias o se borra el navegador, perderías tus pesos, la racha y la granja. Guárdala en Drive, en tu correo o en Archivos.</p>
     <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="exportData(true)">💾 Guardar copia</button><button class="btn ghost small" style="width:auto" onclick="S.backupNag=today();save();render()">Luego</button></div></div>`;
+}
+
+/* ---------- Series de glúteo por semana ---------- */
+const GLUTE_ZONE = {glutes:[10,20], abductors:[6,12]}; // series semanales recomendadas para que crezca
+function muscleSets(from, to){
+  const r={glutes:0, abductors:0}, add=(id,n)=>{ const m=EX_MUSCLES[id]||{}; for(const k in r) r[k]+=(m[k]||0)*n; };
+  S.log.forEach(e=>{ if(e.date>=from && e.date<=to) e.exercises.forEach(x=>add(x.id, x.sets.length)); });
+  if(!S.day.done && S.day.date>=from && S.day.date<=to) todayExercises().forEach((ex,i)=>{ const n=(S.day.sets[i]||[]).filter(q=>q.done).length; if(n) add(S.day.sid[i]||ex.id, n); });
+  return r;
+}
+function gluteCard(){
+  const mon=mondayOf(today()), sun=addDays(mon,6), w=muscleSets(mon,sun);
+  if(!S.log.length && !w.glutes) return '';
+  const prev=[3,2,1].map(k=>{ const f=addDays(mon,-7*k); return Math.round(muscleSets(f,addDays(f,6)).glutes); });
+  const bar=(k,label)=>{ const [lo,hi]=GLUTE_ZONE[k], max=hi*1.25, v=w[k];
+    return `<div style="margin-top:10px"><div class="row"><b style="font-size:14px">${label}</b><span class="sp"></span><b>${Math.round(v)}</b><span class="tiny">&nbsp;de ${lo}-${hi} series</span></div>
+      <div class="gbar"><span class="zone" style="left:${100*lo/max}%;width:${100*(hi-lo)/max}%"></span><i style="width:${Math.min(100,100*v/max)}%;background:${v<lo?'var(--straw)':v>hi?'var(--comb)':'var(--sage)'}"></i></div></div>`; };
+  const g=w.glutes, [lo,hi]=GLUTE_ZONE.glutes, left=daysBetween(today(),sun);
+  const msg = g>hi ? 'Vas sobrada: más series no lo harán crecer más, solo te cansan.' : g>=lo ? '✅ Estás en la zona buena para que crezca.' : left>0 ? `Te faltan unas ${Math.ceil(lo-g)} series: suma algún extra de glúteo en los próximos entrenos.` : 'Esta semana te has quedado algo corta.';
+  return `<div class="card"><h3>🍑 Glúteo esta semana</h3>${bar('glutes','Glúteo')}${bar('abductors','Glúteo medio')}
+    <p class="sub" style="margin:10px 0 0">${msg}</p>
+    <p class="tiny" style="margin:6px 0 0">La franja verde es lo recomendado para que crezca. Los ejercicios que lo trabajan a medias (prensa, búlgara…) cuentan como media serie.${prev.some(Boolean)?` Semanas anteriores: ${prev.join(' · ')}.`:''}</p></div>`;
+}
+
+/* ---------- Vídeo de cada ejercicio (búsqueda en YouTube) ---------- */
+function shortName(id){ return EX[id].n.replace(/\s*\(.*?\)/g,''); } // sin lo que va entre paréntesis
+function ytUrl(id){ const e=EX[id]; return 'https://www.youtube.com/results?search_query='+encodeURIComponent(e.yt || shortName(id)+' técnica'); }
+
+/* ---------- Resumen del mes (imagen para compartir) ---------- */
+let MSUM=null;
+function ymPrev(ym){ const [y,m]=ym.split('-').map(Number), d=new Date(y,m-2,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function ymTitle(ym){ const [y,m]=ym.split('-').map(Number); return new Date(y,m-1,1).toLocaleDateString('es-ES',{month:'long'}); }
+function monthStats(ym){
+  const [y,m]=ym.split('-').map(Number), from=ym+'-01', to=ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0');
+  const es=S.log.filter(e=>e.date>=from&&e.date<=to), as=(S.acts||[]).filter(a=>a.date>=from&&a.date<=to);
+  let top=null; es.forEach(e=>e.exercises.forEach(x=>{ const k=Math.max(...x.sets.map(q=>q.kg)); if(k>0 && (!top||k>top.kg)) top={id:x.id, kg:k}; }));
+  return { n:es.length, acts:as.length, days:new Set([...es.map(e=>e.date),...as.map(a=>a.date)]).size,
+    secs:es.reduce((a,e)=>a+(e.secs||0),0)+as.reduce((a,x)=>a+x.mins*60,0),
+    vol:es.reduce((a,e)=>a+e.exercises.reduce((b,x)=>b+x.sets.reduce((c,q)=>c+q.kg*q.reps,0),0),0),
+    prs:Object.entries(prInfo().days).filter(([d])=>d>=from&&d<=to).reduce((a,[,v])=>a+v.length,0),
+    glutes:Math.round(muscleSets(from,to).glutes), top };
+}
+function monthImage(ym){
+  const st=monthStats(ym), [y,m]=ym.split('-').map(Number), title=cap(new Date(y,m-1,1).toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
+  const W=1080, H=1350, c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  const font=(w,px)=>`${w} ${px}px Nunito, system-ui, sans-serif`;
+  const rr=(X,Y,w,h,r)=>{ x.beginPath(); if(x.roundRect) x.roundRect(X,Y,w,h,r); else x.rect(X,Y,w,h); };
+  const an=S.animals.find(a=>a.acc && SPECIES[a.type].art) || S.animals.find(a=>SPECIES[a.type].art);
+  const draw=img=>{
+    x.fillStyle='#FBFAF6'; x.fillRect(0,0,W,H);
+    x.fillStyle='#6FA287'; x.fillRect(0,0,W,330);
+    x.fillStyle='#fff'; x.textAlign='center'; x.font=font(800,42); x.fillText('Mi mes en la granja',W/2,105); x.font=font(900,86); x.fillText(title,W/2,205);
+    x.fillStyle='#FBFAF6'; x.beginPath(); x.arc(W/2,400,150,0,7); x.fill();
+    if(img) x.drawImage(img,W/2-130,260,260,260); else { x.font=font(400,180); x.fillText('🐔',W/2,470); }
+    if(an){ x.fillStyle='#6E685E'; x.font=font(800,34); x.fillText(an.name,W/2,590); }
+    const kg=st.vol>=1000?fmtKg(Math.round(st.vol/100)/10)+' t':Math.round(st.vol)+' kg';
+    const tiles=[[st.n,plural(st.n,'entreno','entrenos')],[st.days,'días activos'],[st.secs?fmtDur(st.secs):'—','en movimiento'],[kg,'levantados'],[st.glutes,'series de glúteo 🍑'],[st.prs,plural(st.prs,'récord 🏆','récords 🏆')]];
+    tiles.forEach(([v,l],i)=>{ const X=70+(i%2)*480, Y=625+Math.floor(i/2)*182;
+      x.fillStyle='rgba(60,50,30,.06)'; rr(X,Y+6,460,170,36); x.fill(); x.fillStyle='#fff'; rr(X,Y,460,170,36); x.fill();
+      x.textAlign='left'; x.fillStyle='#3D3A35'; x.font=font(900,String(v).length>8?54:70); x.fillText(String(v),X+36,Y+92); x.fillStyle='#A39C8F'; x.font=font(800,32); x.fillText(l,X+36,Y+140); });
+    x.textAlign='center'; x.fillStyle='#6E685E'; x.font=font(800,32);
+    const foot=[st.top?`Lo más pesado: ${shortName(st.top.id)} · ${fmtKg(st.top.kg)} kg`:'', st.acts?`+ ${st.acts} ${plural(st.acts,'actividad','actividades')} (monte, zumba…)`:''].filter(Boolean);
+    x.font=font(800,30); foot.forEach((t,i)=>x.fillText(t.length>60?t.slice(0,58)+'…':t, W/2, 1222+i*44));
+    x.fillStyle='#4F8068'; x.font=font(900,30); x.fillText('🐔 Mi Granja Fit',W/2,1322);
+    return c;
+  };
+  return (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>new Promise(res=>{
+    if(!an) return res(draw(null));
+    let svg=henSvg(SPECIES[an.type].art, an.acc, 260); if(!/xmlns=/.test(svg)) svg=svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+    const img=new Image(); img.onload=()=>res(draw(img)); img.onerror=()=>res(draw(null));
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  }));
+}
+function monthShow(ym){
+  S.monthSeen=S.monthSeen>ym?S.monthSeen:ym; save();
+  showModal(`<h2>📅 Tu ${ymTitle(ym)}</h2><p class="sub">Preparando la imagen…</p>`);
+  monthImage(ym).then(c=>c.toBlob(b=>{
+    MSUM={blob:b, name:`mi-granja-${ym}.png`}; const u=URL.createObjectURL(b);
+    showModal(`<h2>📅 Tu ${ymTitle(ym)}</h2><img src="${u}" alt="Resumen del mes" style="width:100%;border-radius:14px;display:block;margin-top:8px">
+      <div style="height:10px"></div><button class="btn" onclick="monthShare()">📤 Compartir</button>
+      <div style="height:8px"></div><a class="btn sec" href="${u}" download="${MSUM.name}">⬇️ Guardar imagen</a>
+      <div style="height:8px"></div><button class="btn ghost" onclick="closeModal();render()">Cerrar</button>`, true);
+  },'image/png'));
+}
+function monthShare(){
+  let f=null; try{ f=new File([MSUM.blob], MSUM.name, {type:'image/png'}); }catch(e){}
+  if(f && navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f]}).catch(()=>{});
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(MSUM.blob); a.download=MSUM.name; a.click(); }
+}
+function monthCard(){
+  const t=today(), ym=ymPrev(t.slice(0,7));
+  if(+t.slice(8)>7 || (S.monthSeen && S.monthSeen>=ym)) return '';
+  const st=monthStats(ym); if(!st.n && !st.acts) return '';
+  return `<div class="card news"><h3>📅 ¡Tu resumen de ${ymTitle(ym)} está listo!</h3><p class="sub" style="margin:4px 0 0">${st.n} ${plural(st.n,'entreno','entrenos')}${st.acts?`, ${st.acts} ${plural(st.acts,'actividad','actividades')}`:''} y ${st.days} días activos. Míralo y compártelo si quieres.</p>
+    <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="monthShow('${ym}')">Verlo</button><button class="btn ghost small" style="width:auto" onclick="S.monthSeen='${ym}';save();render()">OK</button></div></div>`;
+}
+
+/* ---------- Ciclo menstrual (opcional). Se queda en el móvil y en la copia. ---------- */
+const PHASES = {
+  mens:{n:'Regla', e:'🌸', d:'Si tienes energía, entrena normal; si no, baja un poco el peso o haz algo suave. Es normal rendir algo menos.'},
+  fol: {n:'Fase folicular', e:'💪', d:'Suele ser cuando más fuerte estás: buen momento para subir peso y buscar récords.'},
+  ovu: {n:'Ovulación', e:'⚡', d:'Fuerza alta. Cuida la técnica en los ejercicios pesados.'},
+  lut: {n:'Fase lútea', e:'🌙', d:'Energía normal, aunque puede costar algo más recuperarse. Tener más hambre es normal.'},
+  pre: {n:'Días premenstruales', e:'🫶', d:'Es normal rendir menos o tener menos ganas: no pasa nada si no superas la última vez.'}
+};
+function cycleOn(){ return !!S.settings.cycle; }
+function cycleLen(){ const p=(S.periods||[]).slice(-7), d=[]; for(let i=1;i<p.length;i++){ const x=daysBetween(p[i-1],p[i]); if(x>=18&&x<=45) d.push(x); } return d.length ? Math.round(d.reduce((a,b)=>a+b,0)/d.length) : 28; }
+function cycleInfo(ds){
+  ds=ds||today(); const p=(S.periods||[]).filter(x=>x<=ds); if(!p.length) return null;
+  const st=p[p.length-1], L=cycleLen(), day=daysBetween(st,ds)+1; if(day>L+10) return null;
+  const ov=L-14, ph = day<=5?'mens' : day>=L-4?'pre' : day<ov-1?'fol' : day<=ov+1?'ovu' : 'lut';
+  return {day, L, ph, next:addDays(st,L)};
+}
+// días flojos del ciclo: no cuentan para el estancamiento
+function lowDay(ds){ if(!cycleOn()) return false; const c=cycleInfo(ds); return !!c && (c.ph==='mens'||c.ph==='pre'); }
+function isPeriodDay(ds){ return (S.periods||[]).some(p=>ds>=p && daysBetween(p,ds)<5); }
+function periodAdd(){
+  const t=today();
+  showModal(`<h2>🌸 Apuntar regla</h2><p class="sub">¿Qué día te vino? Con 2 o más apuntadas, la app calcula tu ciclo.</p>
+    <div class="set-row"><div class="lb">Primer día</div><input type="date" id="pdate" value="${t}" min="${addDays(t,-90)}" max="${t}"></div>
+    <div style="height:10px"></div><button class="btn" onclick="periodSave(document.getElementById('pdate').value)">Guardar</button>
+    <div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">Cancelar</button>`);
+}
+function periodSave(d){
+  if(!d || d>today()){ toast('Elige una fecha'); return; }
+  // si ya hay una apuntada a menos de 10 días, se corrige esa en vez de añadir otra
+  S.periods=(S.periods||[]).filter(p=>Math.abs(daysBetween(p,d))>=10).concat(d).sort();
+  save(); closeModal(); render(); const c=cycleInfo(); toast(`🌸 Apuntado${c?` · día ${c.day} del ciclo`:''}`);
+}
+function periodDel(d){ if(!confirm(`¿Borrar la regla del ${fmtDate(d)}?`)) return; S.periods=S.periods.filter(p=>p!==d); save(); render(); }
+function cycleCard(){
+  if(!cycleOn()) return '';
+  const c=cycleInfo();
+  if(!c) return `<div class="card" style="padding:12px 14px"><div class="row" style="gap:10px"><span style="font-size:24px">🌸</span><div class="sp"><b>¿Cuándo empezó tu última regla?</b><div class="tiny">Apúntala para saber en qué fase estás.</div></div><button class="btn small" style="width:auto" onclick="periodAdd()">Apuntar</button></div></div>`;
+  const P=PHASES[c.ph];
+  return `<div class="card" style="padding:12px 14px"><div class="row" style="gap:10px;align-items:flex-start"><span style="font-size:24px">${P.e}</span><div class="sp"><b>Día ${c.day} · ${P.n}</b><div class="tiny">${P.d}</div>
+    <div class="tiny" style="margin-top:2px">${c.day>c.L?'Según tu media ya debería haber venido: apúntala cuando llegue.':`Próxima regla: ~${fmtDate(c.next)}`}</div></div></div>
+    <button class="btn ghost small" style="margin-top:8px" onclick="periodAdd()">🌸 Me ha venido la regla</button></div>`;
 }
 
 /* ---------- Pausa del entreno ---------- */
@@ -2223,13 +2369,14 @@ function calendarCard(){
     if(ws.length) nW++; else if(ex.rest && !as.length) nR++;
     nA+=as.length; as.forEach(a=>secs+=a.mins*60);
     ws.forEach(e=>secs+=e.secs||0);
-    cells+=`<button class="cd ${ws.length||as.length?'w':ex.rest?'r':''} ${ds===t?'today':''} ${fut?'f':''}" ${fut?'disabled':`onclick="showDay('${ds}')"`}>${prd[ds]?'<span class="pr">🏆</span>':''}${d}<span class="ci ${ics.length>1?'two':''}">${icon}</span></button>`;
+    cells+=`<button class="cd ${ws.length||as.length?'w':ex.rest?'r':''} ${ds===t?'today':''} ${fut?'f':''}" ${fut?'disabled':`onclick="showDay('${ds}')"`}>${prd[ds]?'<span class="pr">🏆</span>':''}${cycleOn()&&isPeriodDay(ds)?'<span class="pd"></span>':''}${d}<span class="ci ${ics.length>1?'two':''}">${icon}</span></button>`;
   }
   return `<div class="card"><div class="row"><button class="btn ghost small" onclick="calMove(-1)" aria-label="Mes anterior">‹</button>
       <h3 class="sp" style="text-align:center">📅 ${title}</h3>
       <button class="btn ghost small" onclick="calMove(1)" aria-label="Mes siguiente" ${ym>=t.slice(0,7)?'disabled':''}>›</button></div>
     <div class="cal" style="margin-top:10px">${['L','M','X','J','V','S','D'].map(d=>`<span class="dw">${d}</span>`).join('')}${cells}</div>
-    <div class="tiny" style="text-align:center;margin-top:10px">${nW} ${plural(nW,'entreno','entrenos')}${nA?` · ${nA} ${plural(nA,'actividad','actividades')}`:''} · ${nR} ${plural(nR,'descanso','descansos')}${secs?' · ⏱ '+fmtDur(secs)+(nA?' en movimiento':' entrenando'):''} · toca un día para verlo</div></div>`;
+    <div class="tiny" style="text-align:center;margin-top:10px">${nW} ${plural(nW,'entreno','entrenos')}${nA?` · ${nA} ${plural(nA,'actividad','actividades')}`:''} · ${nR} ${plural(nR,'descanso','descansos')}${secs?' · ⏱ '+fmtDur(secs)+(nA?' en movimiento':' entrenando'):''} · toca un día para verlo</div>
+    ${nW||nA?`<div style="height:10px"></div><button class="btn sec small" onclick="monthShow('${ym}')">📤 Resumen de este mes</button>`:''}</div>`;
 }
 function showDay(ds){
   const ws=S.log.filter(e=>e.date===ds), as=actsOn(ds), ex=dayExtras(ds);
@@ -2401,6 +2548,12 @@ function viewSettings(){
     <div class="set-row"><div class="lb">Salto de peso<small>Lo que suman los botones − / +</small></div>${seg('step',[0.5,1,2,2.5],o=>fmtKg(+o))}</div>
     <div class="set-row" style="flex-wrap:wrap"><div class="lb">Dificultad<small>Rutina de casa: automática según tu nivel (ahora: ${RANKS[at].n}) o fija. En el gimnasio progresas subiendo peso.</small></div>
       <select class="sel" style="margin-top:0;width:100%" onchange="setSetting('tier',this.value)"><option value="auto" ${S.settings.tier==='auto'?'selected':''}>Automática</option>${RANKS.map((r,i)=>`<option value="${i}" ${String(S.settings.tier)===String(i)?'selected':''}>${r.e} ${r.n}</option>`).join('')}</select></div>
+  </div>
+  <div class="card"><h3>🌸 Ciclo menstrual</h3>
+    <div class="set-row"><div class="lb">Seguimiento del ciclo<small>Te dice en qué fase estás y qué suele pasar con la fuerza, y no te marca estancamiento por los días de antes y durante la regla. Se queda solo en este móvil (y en tu copia).</small></div><button class="switch ${cycleOn()?'on':''}" onclick="S.settings.cycle=!S.settings.cycle;save();render()" aria-label="Seguimiento del ciclo"></button></div>
+    ${cycleOn()?`<div class="set-row"><div class="lb">Duración media<small>${(S.periods||[]).length>=2?'Calculada con lo que has apuntado':'28 días hasta que apuntes 2 reglas'}</small></div><b>${cycleLen()} días</b></div>
+    <div class="set-row"><div class="lb">Reglas apuntadas</div><button class="btn sec small" onclick="periodAdd()">+ Apuntar</button></div>
+    ${(S.periods||[]).slice(-6).reverse().map(p=>`<div class="wu-item"><span>🌸 ${fmtDate(p)}</span><button class="btn ghost small" style="width:auto" onclick="periodDel('${p}')" aria-label="Borrar">✕</button></div>`).join('')}`:''}
   </div>
   <div class="card"><h3>✨ Recordatorios de Kegel</h3>
     ${KEGEL_SLOTS.map((k,i)=>`<div class="set-row"><div class="lb">${k.ic} ${k.n}</div><input type="time" value="${S.settings.kegelTimes[i]}" onchange="S.settings.kegelTimes[${i}]=this.value;save()"></div>`).join('')}
