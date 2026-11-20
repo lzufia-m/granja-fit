@@ -668,9 +668,12 @@ const ACCESSORIES = {
   gorro:    {n:'Gorro de lana',     cost:10},
   gafas:    {n:'Gafas de sol',      streak:7},
   medalla:  {n:'Medalla',           streak:14},
-  corona:   {n:'Corona',            streak:30}
+  corona:   {n:'Corona',            streak:30},
+  pajarita: {n:'Pajarita',          chal:1},
+  diadema:  {n:'Diadema con estrella', chal:4},
+  capa:     {n:'Capa de heroína',   chal:10}
 };
-function accOwned(k){ const a=ACCESSORIES[k]; return a.streak ? (S.bestStreak||0)>=a.streak : (S.owned||[]).includes(k); }
+function accOwned(k){ const a=ACCESSORIES[k]; return a.streak ? (S.bestStreak||0)>=a.streak : a.chal ? (S.chalStars||0)>=a.chal : (S.owned||[]).includes(k); }
 
 /* ---------- Dibujo de gallinas (SVG, mirando a la izquierda) ---------- */
 let ARTN=0;
@@ -741,6 +744,9 @@ function accSvg(acc){
     case 'gorro': return `<g><path d="M21 30 Q21 13 35 13 Q48 13 48 30 Z" fill="#6FA287"/><rect x="20" y="27" width="29" height="5" rx="2.5" fill="#4F8068"/><circle cx="35" cy="12" r="4" fill="#F2C46D"/></g>`;
     case 'gafas': return `<g><rect x="22" y="30" width="13" height="8" rx="3.5" fill="#2B2622" stroke="#E0A81C" stroke-width="1.6"/><path d="M35 33 L46 32" stroke="#E0A81C" stroke-width="1.8"/><path d="M24 32 L28 31" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".6"/></g>`;
     case 'medalla': return `<g><path d="M30 46 L36 58 L42 46" stroke="#5B8DD6" stroke-width="3" fill="none"/><circle cx="36" cy="61" r="5.5" fill="#F2C230" stroke="#D99A12" stroke-width="1.2"/><text x="36" y="63.6" font-size="7" text-anchor="middle" fill="#9A6B12" font-weight="900">1</text></g>`;
+    case 'pajarita': return `<g transform="translate(37 49)"><path d="M0 0 L-8 -5 L-8 5 Z M0 0 L8 -5 L8 5 Z" fill="#5B8DD6"/><circle r="2.4" fill="#3F6FB8"/></g>`;
+    case 'diadema': return `<g><path d="M22 28 Q35 17 48 28" stroke="#E0638F" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M35 9.5 l2.3 4.7 5.2.7-3.8 3.6.9 5.1-4.6-2.4-4.6 2.4.9-5.1-3.8-3.6 5.2-.7z" fill="#F2C230" stroke="#D99A12" stroke-width=".8"/></g>`;
+    case 'capa': return `<g><path d="M44 42 Q64 38 80 54 Q74 74 56 78 Q52 60 44 42 Z" fill="#B4412E" opacity=".95"/><path d="M44 42 Q64 38 80 54" stroke="#F2C230" stroke-width="2" fill="none"/></g>`;
     case 'corona': return `<g><path d="M24 26 L26 14 L31 21 L35 11 L39 21 L44 14 L45 26 Z" fill="#F2C230" stroke="#D99A12" stroke-width="1"/><circle cx="35" cy="22" r="1.8" fill="#E0644F"/><circle cx="29" cy="23" r="1.3" fill="#6FA287"/><circle cx="41" cy="23" r="1.3" fill="#5B8DD6"/></g>`;
   }
   return '';
@@ -846,6 +852,7 @@ function rollover(){
   const t=today();
   let changed=false;
   if(idleWorkout()){ finishWorkout(true); changed=true; } // antes de pasar de día, para que no se pierda
+  if(checkChallenges()) changed=true;
   if(S.farmDay<t){
     let laid=0, n=0;
     while(S.farmDay<t && n<400){ laid+=farmTick(); S.farmDay=addDays(S.farmDay,1); n++; }
@@ -929,6 +936,7 @@ function todayExercises(){
       return Object.assign({id, t, note, eq, name:EX[id].n, d:EX[id].d}, parseT(t)); })
     : !GATES[g].tiers ? GYM[g].slots.map(sl=>{ const [id,t,note]=sl.db; return Object.assign({id, t, note, name:EX[id].n, d:EX[id].d}, parseT(t)); })
     : GATES[g].tiers[tier()].map(([id,t,note,name])=>Object.assign({id, t, note, name:name||EX[id].n, d:EX[id].d}, parseT(t)));
+  if(deloadOn(S.day.date)) base.forEach(e=>e.sets=Math.max(2,e.sets-1));
   const extras=(S.day.extras||[]).map(id=>{ const [,t,note]=(EXTRAS[g]||[]).find(x=>x[0]===id)||[id,'3x12-15',''];
     return Object.assign({id, t, note, extra:true, name:EX[id].n, d:EX[id].d}, parseT(t)); });
   return base.concat(extras);
@@ -940,10 +948,11 @@ function setsFor(ei, ex){
     S.day.sid[ei]=ex.id;
     const last=S.last[ex.id]||[];
     // si la última vez llegaste al máximo de reps en todas las series, se avisa de subir peso (pero no se sube solo)
-    const up = last.length>=ex.sets && last.every(q=>q.reps>=ex.rmax) && last[0].kg>0;
+    const dl = deloadOn(S.day.date) && !ex.extra;
+    const up = !dl && last.length>=ex.sets && last.every(q=>q.reps>=ex.rmax) && last[0].kg>0;
     S.day.sets[ei]=Array.from({length:ex.sets},(_,i)=>{ const l=last[i]||last[last.length-1];
       if(!l) return {kg:0, reps:ex.rmin, done:false};
-      return {kg:l.kg, reps:l.reps, done:false}; });
+      return {kg:dl?roundStep(l.kg*.9):l.kg, reps:l.reps, done:false}; });
     if(up) S.day.up[ei]=true;
   }
   return S.day.sets[ei];
@@ -1032,12 +1041,13 @@ function finishWorkout(auto){
   const nExtra=exs.filter((ex,i)=>ex.extra && setsFor(i,ex).filter(s=>s.done).length>=Math.min(2,ex.sets)).length;
   const entry={id:uid(), date:S.day.date, gate:todayGate(), tier:tier(), exercises:[]};
   if(gymDay(entry.gate)) entry.gym=true;
+  if(deloadOn(entry.date)) entry.deload=true;
   if(auto){ const end=S.day.lastSet||S.day.start; entry.end=end; entry.secs=Math.max(60, Math.round((end-S.day.start-(S.day.pausedMs||0))/1000)); }
   else { if(S.day.start) entry.secs=Math.round(elapsedMs()/1000); entry.end=S.day.pausedAt||Date.now(); }
   exs.forEach((ex,i)=>{
     const done=setsFor(i,ex).filter(s=>s.done).map(s=>({kg:s.kg, reps:s.reps}));
     if(done.length){
-      entry.exercises.push({id:ex.id, name:ex.name, sets:done});
+      entry.exercises.push(Object.assign({id:ex.id, name:ex.name, sets:done}, ex.extra?{extra:true}:{}));
       S.last[ex.id]=done;
       S.best[ex.id]=Math.max(S.best[ex.id]||0, ...done.map(s=>s.kg));
     }
@@ -1544,6 +1554,7 @@ function buyAcc(k){
   const ac=ACCESSORIES[k];
   if(accOwned(k)){ toast('Ya lo tienes: pónselo desde la ficha de una gallina'); return; }
   if(ac.streak){ toast(`Se gana con una racha de ${ac.streak} días 🔥`); return; }
+  if(ac.chal){ toast(`Se gana completando los retos de ${ac.chal} ${plural(ac.chal,'semana','semanas')} ⭐`); return; }
   if(S.eggs<ac.cost){ toast(`Te faltan ${ac.cost-S.eggs} 🥚`); return; }
   S.eggs-=ac.cost; S.owned=(S.owned||[]).concat(k); save(); render();
   toast(`👒 ¡${ac.n} en tu armario! Toca una gallina para ponérselo`);
@@ -1660,6 +1671,8 @@ function viewHome(){
 
   if(S.weekSeen!==mondayOf(today())) h+=weekCard(true);
   h+=photoReminder();
+  h+=backupReminder();
+  h+=deloadCard();
   if(yesterdayMissing()){
     h+=`<div class="card"><div class="row"><div><h3>🌾 ¿Ayer descansaste?</h3><div class="sub">Si se te olvidó apuntarlo, hazlo ahora y no pierdes la racha.</div></div></div>
       <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="retroRest()">Apuntar descanso de ayer · +${REWARD.rest.corn} 🌽</button><button class="btn ghost small" style="width:auto" onclick="S.retroRest=today();save();render()">No</button></div>
@@ -1685,6 +1698,7 @@ function viewHome(){
       <div class="progress-line"><i style="width:${100*t.done/t.all}%"></i></div>
       ${S.day.start&&!S.day.done?`<div class="row" style="margin-top:6px;gap:8px"><div class="tiny" id="wclock" style="font-weight:800;color:${S.day.pausedAt?'#9A6B12':'var(--sage-dark)'}"></div><span class="sp"></span><button class="btn ${S.day.pausedAt?'':'ghost'} small" onclick="pauseWorkout()">${S.day.pausedAt?'▶ Reanudar':'⏸ Pausar'}</button></div>
       <div class="tiny" style="margin-top:2px">${S.day.pausedAt?'En pausa no se cierra solo (salvo al cambiar de día).':'Si pasan 30 min sin marcar ninguna serie, se cierra y se guarda solo.'}</div>`:''}
+      ${deloadOn(S.day.date)?`<div class="ex-up" style="background:#E6EEF8;color:#2F4F7A;margin-top:12px">🔋 <b>Semana de descarga</b> hasta el ${fmtDate(S.deload.to)}: una serie menos y un 10 % menos de peso (ya puesto). Hoy no toca buscar récords. <button class="swap" onclick="endDeload()">Terminarla ya</button></div>`:''}
       ${recoveryWarning(g)}
       ${S.day.done&&doneSecs?`<div class="tiny" style="margin-top:4px;font-weight:800;color:var(--sage-dark)">⏱ Entrenaste ${fmtDur(doneSecs)}</div>`:''}
       <div class="tiny" style="margin-top:4px">${t.done} de ${t.all} series · ${GD?'mancuernas: peso de cada una · máquinas: el que marca la máquina':'peso por mancuerna'}</div>`;
@@ -1705,6 +1719,7 @@ function viewHome(){
           <div class="ex-meta">${ex.eq?EQUIP[ex.eq].e+' ':''}${ex.sets} series × ${reps} reps${per}${ex.note?' · '+esc(ex.note):''}</div>
           ${ex.eq&&!slotStarted(ei)?`<button class="swap" onclick="swapEx(${ei})">⇄ Hacer con ${ex.eq==='db'?'máquina':'mancuernas'}</button>`:''}
           ${S.day.up[ei]&&!S.day.done?`<div class="ex-up">⬆️ La última vez llegaste al máximo de repeticiones en todas las series: deberías subir el peso. Súbelo tú con + si te ves con fuerza.</div>`:''}
+          ${!S.day.done && !ex.extra && !deloadOn(S.day.date) && !S.day.up[ei] && stalled(ex.id)?`<div class="ex-up" style="background:#F3E6F0;color:#7A3B5E">📉 Llevas 3 sesiones sin mejorar aquí. Prueba a bajar un 10 % el peso y apurar las repeticiones${ex.eq?', o cámbialo por su variante con ⇄':''}. Si te pasa en varios, quizá toca una semana de descarga.</div>`:''}
           ${last?`<div class="ex-last">Última vez: ${last.map(s=>fmtKg(s.kg)+'×'+s.reps).join(' · ')}${best?` · 🏆 ${fmtKg(best)} kg`:''}</div>`:`<div class="ex-last">Primera vez: elige un peso con el que llegues justo al rango de repeticiones.</div>`}</div>
           <div style="display:flex;flex-direction:column;gap:6px"><button class="info-btn" onclick="toggleInfo(${ei})" aria-label="Cómo se hace">?</button><button class="info-btn" onclick="noteEdit('${ex.id}')" aria-label="Nota">📝</button>${ex.extra&&!slotStarted(ei)?`<button class="info-btn" onclick="removeExtra(${ei})" aria-label="Quitar extra">✕</button>`:''}</div></div>
         ${S.notes[ex.id]?`<div class="ex-note">📝 ${esc(S.notes[ex.id])}</div>`:''}
@@ -1726,6 +1741,8 @@ function viewHome(){
     }
   }
   h+=`</div>`;
+
+  h+=chalCard();
 
   // --- Músculos ---
   if(g!=='rest' || Object.keys(muscleScores(MRANGE)).length) h+=musclesCard();
@@ -1815,9 +1832,9 @@ function viewFarm(){
   h+=`<div class="sec-title">Armario · accesorios para gallinas</div><div class="shop">`;
   Object.entries(ACCESSORIES).forEach(([k,ac])=>{
     const own=accOwned(k);
-    h+=`<div class="item ${!own&&ac.streak?'locked':''}"><span class="em">${henSvg(SPECIES[sample].art,k,52)}</span><div class="nm">${esc(ac.n)}</div>
-      <div class="ds">${ac.streak?`Premio por racha de ${ac.streak} días 🔥`:'Se compra una vez y se lo pones a quien quieras.'}</div>
-      <button class="btn ${own?'sec':(ac.streak||S.eggs<ac.cost)?'ghost':''} small" onclick="buyAcc('${k}')">${own?'✓ Lo tienes':ac.streak?`🔥 ${Math.min(S.bestStreak||0,ac.streak)}/${ac.streak} días`:`${ac.cost} 🥚`}</button></div>`;
+    h+=`<div class="item ${!own&&(ac.streak||ac.chal)?'locked':''}"><span class="em">${henSvg(SPECIES[sample].art,k,52)}</span><div class="nm">${esc(ac.n)}</div>
+      <div class="ds">${ac.streak?`Premio por racha de ${ac.streak} días 🔥`:ac.chal?`Premio por completar los retos de ${ac.chal} ${plural(ac.chal,'semana','semanas')} ⭐`:'Se compra una vez y se lo pones a quien quieras.'}</div>
+      <button class="btn ${own?'sec':(ac.streak||ac.chal||S.eggs<ac.cost)?'ghost':''} small" onclick="buyAcc('${k}')">${own?'✓ Lo tienes':ac.streak?`🔥 ${Math.min(S.bestStreak||0,ac.streak)}/${ac.streak} días`:ac.chal?`⭐ ${Math.min(S.chalStars||0,ac.chal)}/${ac.chal}`:`${ac.cost} 🥚`}</button></div>`;
   });
   h+=`</div>`;
 
@@ -1893,6 +1910,109 @@ function removeExtra(ei){
   const n=base+S.day.extras.length;
   for(let k=ei; k<=n; k++) ['sets','sid','up'].forEach(f=>{ if(S.day[f][k+1]!==undefined) S.day[f][k]=S.day[f][k+1]; else delete S.day[f][k]; });
   save(); render();
+}
+
+/* ---------- Estancamiento y semana de descarga ---------- */
+function roundStep(k){ const st=+S.settings.step||1; return Math.round(Math.round(k/st)*st*100)/100; }
+function deloadOn(ds){ const d=S.deload; return !!d && ds>=d.from && ds<=d.to; }
+// estancado = las 3 últimas sesiones no superan lo mejor de antes ni en total ni en peso máximo (sin contar descargas)
+function stalled(id){
+  const ss=S.log.filter(e=>!e.deload).sort((a,b)=>a.date.localeCompare(b.date)).map(e=>e.exercises.find(x=>x.id===id)).filter(Boolean);
+  if(ss.length<4) return false;
+  const bw=ss.every(x=>x.sets.every(q=>!q.kg));
+  const val=x=>({v:x.sets.reduce((a,q)=>a+(bw?q.reps:q.kg*q.reps),0), m:Math.max(...x.sets.map(q=>q.kg))});
+  const prev=ss.slice(0,-3).map(val), bv=Math.max(...prev.map(p=>p.v)), bm=Math.max(...prev.map(p=>p.m));
+  return ss.slice(-3).map(val).every(p=>p.v<=bv && p.m<=bm);
+}
+function stalledList(){ return [...new Set(S.log.slice(-12).flatMap(e=>e.exercises.map(x=>x.id)))].filter(stalled); }
+// semanas seguidas (hasta la pasada) con 2 o más entrenos, desde la última descarga
+function weeksInARow(){
+  const mon=mondayOf(today()); let n=0;
+  for(let w=1; w<60; w++){
+    const f=addDays(mon,-7*w), t=addDays(f,6);
+    if(S.deload && f<=S.deload.to) break; // la semana de descarga y las de antes ya no cuentan
+    if(S.log.filter(e=>e.date>=f && e.date<=t).length<2) break;
+    n++;
+  }
+  return n;
+}
+function deloadCard(){
+  const t=today();
+  if(deloadOn(t) || (S.deload && S.deload.from>t) || (S.deloadNag && daysBetween(S.deloadNag,t)<7)) return '';
+  const wk=weeksInARow(), st=stalledList();
+  if(!(wk>=7 || (wk>=4 && st.length>=3))) return '';
+  return `<div class="card"><h3>🔋 ¿Una semana de descarga?</h3>
+    <p class="sub" style="margin:4px 0 0">${wk>=7?`Llevas <b>${wk} semanas seguidas</b> entrenando.`:`Tienes <b>${st.length} ejercicios</b> estancados (${st.slice(0,3).map(id=>esc(EX[id].n)).join(', ')}).`}
+    Una semana suave ayuda a que músculos y articulaciones se recuperen, y después sueles subir mejor: los mismos ejercicios, una serie menos y un 10 % menos de peso (la app te lo pone sola).</p>
+    <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="startDeload()">Empezar descarga</button><button class="btn ghost small" style="width:auto" onclick="S.deloadNag=today();save();render()">Ahora no</button></div></div>`;
+}
+function startDeload(){
+  const t=today(), busy=S.day.done || Object.values(S.day.sets).some(ss=>ss.some(q=>q.done)), from=busy?addDays(t,1):t;
+  if(!busy){ S.day.sets={}; S.day.sid={}; S.day.up={}; }
+  S.deload={from, to:addDays(from,6)}; save(); render();
+  toast(`🔋 Semana de descarga hasta el ${fmtDate(S.deload.to)}`);
+}
+function endDeload(){
+  if(!confirm('¿Terminar ya la semana de descarga?')) return;
+  const t=today(), busy=Object.values(S.day.sets).some(ss=>ss.some(q=>q.done));
+  S.deload.to = busy||S.day.done ? t : addDays(t,-1);
+  if(!busy && !S.day.done){ S.day.sets={}; S.day.sid={}; S.day.up={}; }
+  save(); render();
+}
+
+/* ---------- Retos de la semana ---------- */
+const CHAL_EGGS = 4, CHAL_XP = 20, CHAL_BONUS = 5;
+function wkLog(f,t){ return S.log.filter(e=>e.date>=f && e.date<=t); }
+function wkDays(f,t,fn){ let n=0; for(let d=f; d<=t && d<=today(); d=addDays(d,1)) n+=fn(dayExtras(d))||0; return n; }
+const CHAL = {
+  legs:   {e:'🍑', t:n=>`Haz los ${n} días de pierna`, v:(f,t)=>wkLog(f,t).filter(e=>/^legs/.test(e.gate)).length},
+  train:  {e:'🏋️', t:n=>`Muévete ${n} días (gimnasio o actividad)`, v:(f,t)=>new Set([...wkLog(f,t).map(e=>e.date), ...(S.acts||[]).filter(a=>a.date>=f&&a.date<=t).map(a=>a.date)]).size},
+  glute:  {e:'⭐', t:n=>`Haz ${n} ejercicios extra de glúteo`, v:(f,t)=>wkLog(f,t).reduce((a,e)=>a+e.exercises.filter(x=>x.extra && ((EX_MUSCLES[x.id]||{}).glutes>=1 || (EX_MUSCLES[x.id]||{}).abductors>=1)).length,0)},
+  stretch:{e:'🧘', t:n=>`Estira ${n} días`, v:(f,t)=>wkDays(f,t,x=>x.stretch?1:0)},
+  kegel:  {e:'✨', t:n=>`Haz ${n} sesiones de Kegel`, v:(f,t)=>wkDays(f,t,x=>x.kegel)},
+  act:    {e:'⛰️', t:()=>'Haz una actividad: monte, zumba, yoga…', v:(f,t)=>(S.acts||[]).filter(a=>a.date>=f&&a.date<=t).length},
+  pr:     {e:'🏆', t:()=>'Consigue un récord', v:(f,t)=>Object.entries(prInfo().days).filter(([d])=>d>=f&&d<=t).reduce((a,[,v])=>a+v.length,0)},
+  cardio: {e:'🏃', t:n=>`Haz ${n} cardios extra después de las pesas`, v:(f,t)=>wkDays(f,t,x=>x.cardio?1:0)}
+};
+function newChallenges(mon){
+  // pierna siempre (tu prioridad); los otros dos cambian cada semana
+  const pool=['train','glute','stretch','kegel','act','pr'].concat(atGym()?['cardio']:[]).sort((a,b)=>hash(mon+a)-hash(mon+b));
+  let avg=0; for(let w=1; w<=4; w++){ const f=addDays(mon,-7*w); avg+=CHAL.train.v(f,addDays(f,6)); }
+  const tgt={legs:2, train:Math.min(5,Math.max(3,Math.round(avg/4))), glute:3, stretch:3, kegel:10, act:1, pr:1, cardio:2};
+  return {week:mon, list:['legs',...pool.slice(0,2)].map(k=>({k, n:tgt[k], done:false})), star:false};
+}
+function checkChallenges(){
+  const mon=mondayOf(today()), sun=addDays(mon,6); let ch=false;
+  if(!S.chal || S.chal.week!==mon){ S.chal=newChallenges(mon); ch=true; }
+  S.chal.list.forEach(c=>{ if(!c.done && CHAL[c.k].v(mon,sun)>=c.n){
+    c.done=true; ch=true; S.eggs+=CHAL_EGGS; addXp(CHAL_XP); toast(`🎯 ¡Reto cumplido! ${CHAL[c.k].t(c.n)} · +${CHAL_EGGS} 🥚`); } });
+  if(!S.chal.star && S.chal.list.every(c=>c.done)){
+    S.chal.star=true; S.chalStars=(S.chalStars||0)+1; S.eggs+=CHAL_BONUS; ch=true;
+    const acc=Object.entries(ACCESSORIES).find(([,a])=>a.chal===S.chalStars);
+    setTimeout(()=>showModal(`<div style="text-align:center;font-size:56px">⭐🎉</div><h2 style="text-align:center">¡Semana completa!</h2>
+      <p class="sub" style="text-align:center">Has cumplido los 3 retos: +${CHAL_BONUS} 🥚 extra y ya llevas <b>${S.chalStars} ⭐</b>.${acc?` Premio nuevo en el armario: <b>${acc[1].n}</b>.`:''}</p>
+      ${acc?`<div style="text-align:center">${henSvg(SPECIES.pita.art,acc[0],90)}</div>`:''}<button class="btn" onclick="closeModal()">¡Genial!</button>`),800);
+  }
+  return ch;
+}
+function chalCard(){
+  if(!S.chal) return '';
+  const mon=S.chal.week, sun=addDays(mon,6), left=daysBetween(today(),sun);
+  const next=Object.values(ACCESSORIES).filter(a=>a.chal>(S.chalStars||0)).sort((a,b)=>a.chal-b.chal)[0];
+  return `<div class="card"><div class="row"><h3>🎯 Retos de la semana</h3><span class="sp"></span><span class="tiny">${left?`quedan ${left+1} días`:'último día'}</span></div>
+    ${S.chal.list.map(c=>{ const v=c.done?c.n:Math.min(c.n, CHAL[c.k].v(mon,sun));
+      return `<div class="row" style="gap:10px;margin-top:10px"><span style="font-size:22px">${c.done?'✅':CHAL[c.k].e}</span><div class="sp"><div style="font-weight:800;font-size:14px;${c.done?'color:var(--sage-dark)':''}">${CHAL[c.k].t(c.n)}</div>
+        <div class="progress-line" style="margin-top:4px"><i style="width:${100*v/c.n}%"></i></div></div><b class="tiny" style="min-width:30px;text-align:right">${v}/${c.n}</b></div>`; }).join('')}
+    <p class="tiny" style="margin:10px 0 0">Cada reto: +${CHAL_EGGS} 🥚 · Los 3: ⭐ y +${CHAL_BONUS} 🥚 · Llevas ${S.chalStars||0} ⭐${next?` (con ${next.chal} ⭐ ganas: ${next.n.toLowerCase()})`:''}</p></div>`;
+}
+
+/* ---------- Copia de seguridad: recordatorio semanal ---------- */
+function backupReminder(){
+  const t=today();
+  if(!S.log.length || (S.backupAt && daysBetween(S.backupAt,t)<7) || (S.backupNag && daysBetween(S.backupNag,t)<3)) return '';
+  return `<div class="card"><h3>💾 Guarda una copia de tus datos</h3>
+    <p class="sub" style="margin:4px 0 0">${S.backupAt?`La última fue hace ${daysBetween(S.backupAt,t)} días.`:'Aún no has guardado ninguna.'} Todo está solo en este móvil: si lo cambias o se borra el navegador, perderías tus pesos, la racha y la granja. Guárdala en Drive, en tu correo o en Archivos.</p>
+    <div style="height:10px"></div><div class="row" style="gap:8px"><button class="btn small" style="flex:1" onclick="exportData(true)">💾 Guardar copia</button><button class="btn ghost small" style="width:auto" onclick="S.backupNag=today();save();render()">Luego</button></div></div>`;
 }
 
 /* ---------- Pausa del entreno ---------- */
@@ -2122,7 +2242,7 @@ function showDay(ds){
     ws.forEach(e=>{
       const G=GATES[e.gate]||{icon:'🏋️', name:'Gimnasio'}, nsets=e.exercises.reduce((a,x)=>a+x.sets.length,0);
       const vol=e.exercises.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+s.kg*s.reps,0),0);
-      h+=`<div class="hist"><div class="row" style="flex-wrap:wrap;gap:6px"><b>${G.icon} ${G.name}</b><span class="badge">${e.gym?'🏢 Gimnasio':'🏠 Casa'}</span>${e.secs?`<span class="badge green">⏱ ${fmtDur(e.secs)}</span>`:''}</div>
+      h+=`<div class="hist"><div class="row" style="flex-wrap:wrap;gap:6px"><b>${G.icon} ${G.name}</b><span class="badge">${e.gym?'🏢 Gimnasio':'🏠 Casa'}</span>${e.deload?'<span class="badge">🔋 Descarga</span>':''}${e.secs?`<span class="badge green">⏱ ${fmtDur(e.secs)}</span>`:''}</div>
         <div class="tiny" style="margin-top:4px">${nsets} series · ${Math.round(vol)} kg levantados en total</div>
         <table class="t">${e.exercises.map(x=>`<tr><td>${esc(x.name)}</td><td style="white-space:nowrap;text-align:right">${x.sets.map(s=>fmtKg(s.kg)+'×'+s.reps).join(' · ')}</td></tr>`).join('')}</table></div>`;
     });
@@ -2287,6 +2407,8 @@ function viewSettings(){
     <div class="set-row"><div class="lb">Avisos en el móvil<small>Funcionan mientras la app esté abierta o en segundo plano reciente</small></div><button class="switch ${S.settings.notif?'on':''}" onclick="toggleNotif()" aria-label="Activar avisos"></button></div>
   </div>
   <div class="card"><h3>💾 Tus datos</h3><p class="sub" style="margin:4px 0 12px">Todo se guarda solo en este dispositivo. Haz una copia de vez en cuando por si cambias de móvil o borras el navegador. Las fotos de progreso no van en la copia: guárdalas desde Progreso → 📸 con ⬇️.</p>
+    <p class="tiny" style="margin:0 0 8px">${S.backupAt?`Última copia: ${fmtDate(S.backupAt)}`:'Aún no has guardado ninguna copia.'} Te lo recordaré cada semana.</p>
+    <button class="btn" onclick="exportData(true)">💾 Guardar copia (Drive, correo…)</button><div style="height:8px"></div>
     <button class="btn sec" onclick="exportData()">⬇️ Descargar copia de seguridad</button><div style="height:8px"></div>
     <label class="btn ghost" style="cursor:pointer">⬆️ Restaurar copia<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])"></label><div style="height:8px"></div>
     <button class="btn ghost" style="color:#B4412E" onclick="resetAll()">Empezar de cero</button></div>
@@ -2311,9 +2433,14 @@ function checkReminders(){
     if(hm>=t && !S.day.kegel[i] && !S.day.notified[i]){ S.day.notified[i]=true; save(); notify('Hora del Kegel '+KEGEL_SLOTS[i].ic, `Sesión de ${KEGEL_SLOTS[i].n.toLowerCase()}: 2 minutos y +1 🌽 para tus gallinas.`); }
   });
 }
-function exportData(){
-  const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`mi-granja-${today()}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+function exportData(share){
+  const name=`mi-granja-${today()}.json`, blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  const done=()=>{ S.backupAt=today(); S.backupNag=null; saveNow(); render(); toast('💾 Copia guardada'); };
+  const download=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); done(); };
+  let file=null; try{ file=new File([blob],name,{type:'application/json'}); }catch(e){}
+  if(share && file && navigator.canShare && navigator.canShare({files:[file]}))
+    navigator.share({files:[file], title:'Copia de Mi Granja'}).then(done).catch(e=>{ if(e && e.name!=='AbortError') download(); });
+  else download();
 }
 function importData(file){
   if(!file) return;
@@ -2349,6 +2476,7 @@ function migrate(s){
 
 /* ---------- Arranque ---------- */
 S=migrate(load());
+try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){} // que el navegador no borre los datos por falta de espacio
 render();
 loadPhotos();
 setInterval(checkReminders, 30000);
