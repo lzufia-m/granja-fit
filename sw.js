@@ -1,5 +1,5 @@
 // Network-first con copia offline (mismo patrón que Ascension System)
-var CACHE_NAME = "mi-granja-fit-v23";
+var CACHE_NAME = "mi-granja-fit-v24";
 var APP_SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", function (event) {
